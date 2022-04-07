@@ -18,14 +18,16 @@ public class ClientCommands {
     public static void registerClientCommands(RegisterClientCommandsEvent event) {
         LiteralCommandNode<CommandSourceStack> rootCommand = event.getDispatcher().register(
                 Commands.literal(Constants.MODID + "hud")
-                        .requires(cs -> cs.hasPermission(2))
-                        .then(Commands.literal("tps").executes(ClientCommands::TPS_Command))
-                        .then(Commands.literal("chunk").executes(ClientCommands::CHUNK_Command))
-                        .then(Commands.literal("entity").executes(ClientCommands::ENTITY_Command))
-                        .then(Commands.literal("clear").executes(ClientCommands::CLEAR_Command)));
+                        //.requires(cs -> cs.hasPermission(2))
+                        .then(Commands.literal("fps").executes(ClientCommands::FPS_Command))
+                        .then(Commands.literal("clear").executes(ClientCommands::CLEAR_Command))
+                        .then(Commands.literal("tps").executes(ClientCommands::TPS_Command)) //.requires(cs -> cs.getServer().isSingleplayer())
+                        .then(Commands.literal("chunk").executes(ClientCommands::CHUNK_Command)) //.requires(cs -> cs.getServer().isSingleplayer() && cs.hasPermission(2))
+                        .then(Commands.literal("entity").executes(ClientCommands::ENTITY_Command)) //.requires(cs -> cs.getServer().isSingleplayer() && cs.hasPermission(2))
+        );
 
         event.getDispatcher().register(Commands.literal("mth")
-                .requires(cs -> cs.hasPermission(2))
+                //.requires(cs -> cs.hasPermission(2))
                 .redirect(rootCommand));
     }
 
@@ -38,8 +40,14 @@ public class ClientCommands {
         return 0;
     }
 
+    private static int FPS_Command(CommandContext<CommandSourceStack> ctx) {
+        HUDManager.RENDERFPS = !HUDManager.RENDERFPS;
+
+        return 0;
+    }
+
     private static int CHUNK_Command(CommandContext<CommandSourceStack> ctx) {
-        if (Minecraft.getInstance().hasSingleplayerServer())
+        if (Minecraft.getInstance().hasSingleplayerServer() && ctx.getSource().hasPermission(2))
             HUDManager.RENDERCHUNK = !HUDManager.RENDERCHUNK;
         else
             PlayerUtil.sendClientMessage(new TextComponent(Constants.ERROR_FORMAT + "This command only works on using the IntegratedServer" + ChatFormatting.RESET));
@@ -48,7 +56,7 @@ public class ClientCommands {
     }
 
     private static int ENTITY_Command(CommandContext<CommandSourceStack> ctx) {
-        if (Minecraft.getInstance().hasSingleplayerServer())
+        if (Minecraft.getInstance().hasSingleplayerServer()&& ctx.getSource().hasPermission(2))
             HUDManager.RENDERENTITY = !HUDManager.RENDERENTITY;
         else
             PlayerUtil.sendClientMessage(new TextComponent(Constants.ERROR_FORMAT + "This command only works when on the IntegratedServer" + ChatFormatting.RESET));
@@ -57,11 +65,7 @@ public class ClientCommands {
     }
 
     private static int CLEAR_Command(CommandContext<CommandSourceStack> commandSourceStackCommandContext) {
-        if (Minecraft.getInstance().hasSingleplayerServer()) {
-            HUDManager.clearHUD();
-        } else {
-            PlayerUtil.sendClientMessage(new TextComponent(Constants.ERROR_FORMAT + "This command only works when on the IntegratedServer" + ChatFormatting.RESET));
-        }
+        HUDManager.clearHUD();
 
         return 0;
     }

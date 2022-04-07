@@ -1,9 +1,9 @@
 package com.dutchs.modpacktools.util;
 
 import com.dutchs.modpacktools.Constants;
-import com.dutchs.modpacktools.ModpackTools;
 import com.dutchs.modpacktools.debug.GCManager;
 import com.dutchs.modpacktools.debug.GCTimer;
+import com.dutchs.modpacktools.debug.HUDManager;
 import com.dutchs.modpacktools.server.ServerHandler;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -15,7 +15,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FrameTimer;
 import net.minecraft.util.Mth;
@@ -49,9 +48,9 @@ public class RenderUtil {
             RenderSystem.applyModelViewMatrix();
             float f = pCenter ? (float) (-font.width(pText)) / 2.0F : 0.0F;
             f -= pXOffset / pScale;
-            MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-            font.drawInBatch(pText, f, 0.0F, pColor, false, Transformation.identity().getMatrix(), multibuffersource$buffersource, false, 0, 15728880);
-            multibuffersource$buffersource.endBatch();
+            MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+            font.drawInBatch(pText, f, 0.0F, pColor, false, Transformation.identity().getMatrix(), buffer, false, 0, 15728880);
+            buffer.endBatch();
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             //RenderSystem.enableDepthTest();
             posestack.popPose();
@@ -67,8 +66,8 @@ public class RenderUtil {
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
         int halfScreenWidth = screenWidth / 2;
         int hudLeft = screenWidth - Math.min(halfScreenWidth, 240);
-        int hudBottom = minecraft.getWindow().getGuiScaledHeight() - Constants.CHAT_HEIGHT;
         int hudHeight = 60;
+        int hudBottom = minecraft.getWindow().getGuiScaledHeight() - Constants.CHAT_HEIGHT;
 
         RenderSystem.disableDepthTest();
 
@@ -79,7 +78,7 @@ public class RenderUtil {
         int i1 = Math.max(0, tpsLog.length - halfScreenWidth);
         int j1 = tpsLog.length - i1;
         int frameIndex = frameTimer.wrapIndex(logStart + i1);
-        long k1 = 0L;
+        long msTotal = 0L;
         int msMin = Integer.MAX_VALUE;
         int msMax = Integer.MIN_VALUE;
 
@@ -87,29 +86,38 @@ public class RenderUtil {
             int k2 = (int) (tpsLog[frameTimer.wrapIndex(frameIndex + j2)] / 1000000L);
             msMin = Math.min(msMin, k2);
             msMax = Math.max(msMax, k2);
-            k1 += k2;
+            msTotal += k2;
         }
 
         GuiComponent.fill(pPoseStack, hudLeft, hudBottom - hudHeight, hudLeft + j1, hudBottom, -1873784752);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
         RenderSystem.enableBlend();
         RenderSystem.disableTexture();
         RenderSystem.defaultBlendFunc();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
         for (Matrix4f matrix4f = Transformation.identity().getMatrix(); frameIndex != logEnd; frameIndex = frameTimer.wrapIndex(frameIndex + 1)) {
-            int l2 = frameTimer.scaleSampleTo(tpsLog[frameIndex], 60, 20);
-            int i3 = 60;
-            int j3 = getSampleColor(Mth.clamp(l2, 0, i3), 0, i3 / 2, i3);
-            int a = j3 >> 24 & 255;
-            int r = j3 >> 16 & 255;
-            int g = j3 >> 8 & 255;
-            int b = j3 & 255;
-            bufferbuilder.vertex(matrix4f, (float) (tHUDLeft + 1), (float) hudBottom, 0.0F).color(r, g, b, a).endVertex();
-            bufferbuilder.vertex(matrix4f, (float) (tHUDLeft + 1), (float) (hudBottom - l2 + 1), 0.0F).color(r, g, b, a).endVertex();
-            bufferbuilder.vertex(matrix4f, (float) tHUDLeft, (float) (hudBottom - l2 + 1), 0.0F).color(r, g, b, a).endVertex();
-            bufferbuilder.vertex(matrix4f, (float) tHUDLeft, (float) hudBottom, 0.0F).color(r, g, b, a).endVertex();
+            int tScaled = frameTimer.scaleSampleTo(tpsLog[frameIndex], 60, 20);
+            int tClampMax = 60;
+            int tClamped = Mth.clamp(tScaled, 0, tClampMax);
+            int tColor = getSampleColor(tClamped, 0, tClampMax / 2, tClampMax);
+            int a = tColor >> 24 & 255;
+            int r = tColor >> 16 & 255;
+            int g = tColor >> 8 & 255;
+            int b = tColor & 255;
+            buffer.vertex(matrix4f, (float) (tHUDLeft + 1), (float) hudBottom, 0.0F).color(r, g, b, a).endVertex();
+            buffer.vertex(matrix4f, (float) (tHUDLeft + 1), (float) (hudBottom - tClamped + 1), 0.0F).color(r, g, b, a).endVertex();
+            buffer.vertex(matrix4f, (float) tHUDLeft, (float) (hudBottom - tClamped + 1), 0.0F).color(r, g, b, a).endVertex();
+            buffer.vertex(matrix4f, (float) tHUDLeft, (float) hudBottom, 0.0F).color(r, g, b, a).endVertex();
+
+            if (tScaled > tClamped) {
+                buffer.vertex(matrix4f, (float) (tHUDLeft + 1), (float) (hudBottom - tClamped - 2), 0.0F).color(r, g, b, a).endVertex();
+                buffer.vertex(matrix4f, (float) (tHUDLeft + 1), (float) (hudBottom - tClamped - 4), 0.0F).color(r, g, b, a).endVertex();
+                buffer.vertex(matrix4f, (float) tHUDLeft, (float) (hudBottom - tClamped - 4), 0.0F).color(r, g, b, a).endVertex();
+                buffer.vertex(matrix4f, (float) tHUDLeft, (float) (hudBottom - tClamped - 2), 0.0F).color(r, g, b, a).endVertex();
+            }
+
             ++tHUDLeft;
         }
 
@@ -131,17 +139,17 @@ public class RenderUtil {
                     int r = j3 >> 16 & 255;
                     int g = j3 >> 8 & 255;
                     int b = j3 & 255;
-                    bufferbuilder.vertex(matrix4f, (float) tHUDLeft, (float) (hudBottom + 4), 0.0F).color(r, g, b, a).endVertex();
-                    bufferbuilder.vertex(matrix4f, (float) (tHUDLeft + 2), (float) (hudBottom + 2), 0.0F).color(r, g, b, a).endVertex();
-                    bufferbuilder.vertex(matrix4f, (float) tHUDLeft, (float) hudBottom, 0.0F).color(r, g, b, a).endVertex();
-                    bufferbuilder.vertex(matrix4f, (float) (tHUDLeft - 2), (float) (hudBottom + 2), 0.0F).color(r, g, b, a).endVertex();
+                    buffer.vertex(matrix4f, (float) tHUDLeft, (float) (hudBottom + 4), 0.0F).color(r, g, b, a).endVertex();
+                    buffer.vertex(matrix4f, (float) (tHUDLeft + 2), (float) (hudBottom + 2), 0.0F).color(r, g, b, a).endVertex();
+                    buffer.vertex(matrix4f, (float) tHUDLeft, (float) hudBottom, 0.0F).color(r, g, b, a).endVertex();
+                    buffer.vertex(matrix4f, (float) (tHUDLeft - 2), (float) (hudBottom + 2), 0.0F).color(r, g, b, a).endVertex();
                 }
                 ++tHUDLeft;
             }
         }
 
-        bufferbuilder.end();
-        BufferUploader.end(bufferbuilder);
+        buffer.end();
+        BufferUploader.end(buffer);
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
 
@@ -156,11 +164,105 @@ public class RenderUtil {
         vLine(pPoseStack, hudLeft, hudBottom - 60, hudBottom, -1);
         vLine(pPoseStack, hudLeft + j1 - 1, hudBottom - 60, hudBottom, -1);
 
-        String s1 = k1 / (long) j1 + " ms avg";
-        String s2 = msMax + " ms max";
-        font.drawShadow(pPoseStack, msMin + " ms min", (float) (hudLeft + 2), (float) (hudBottom - 60 - 9), 14737632);
-        font.drawShadow(pPoseStack, s1, (float) (hudLeft + j1 / 2 - font.width(s1) / 2), (float) (hudBottom - 60 - 9), 14737632);
-        font.drawShadow(pPoseStack, s2, (float) (hudLeft + j1 - font.width(s2)), (float) (hudBottom - 60 - 9), 14737632);
+        String minText = msMin + " ms min";
+        String avgText = msTotal / (long) j1 + " ms avg";
+        String maxText = msMax + " ms max";
+        font.drawShadow(pPoseStack, minText, (float) (hudLeft + 2), (float) (hudBottom - 60 - 12), 14737632);
+        font.drawShadow(pPoseStack, avgText, (float) (hudLeft + j1 / 2 - font.width(avgText) / 2), (float) (hudBottom - 60 - 12), 14737632);
+        font.drawShadow(pPoseStack, maxText, (float) (hudLeft + j1 - font.width(maxText)), (float) (hudBottom - 60 - 12), 14737632);
+
+        RenderSystem.enableDepthTest();
+    }
+
+    public static void drawFPSOverlay(PoseStack pPoseStack) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Font font = minecraft.font;
+        FrameTimer frameTimer = minecraft.getFrameTimer();
+
+        int screenWidth = minecraft.getWindow().getGuiScaledWidth();
+        int halfScreenWidth = screenWidth / 2;
+        int hudLeft = screenWidth - Math.min(halfScreenWidth, 240);
+        int hudHeight = 60;
+        int hudBottom = minecraft.getWindow().getGuiScaledHeight() - (Constants.CHAT_HEIGHT + (HUDManager.RENDERTPS ? hudHeight + 12 : 0));
+
+        RenderSystem.disableDepthTest();
+
+        int logStart = frameTimer.getLogStart();
+        int logEnd = frameTimer.getLogEnd();
+        long[] fpsLog = frameTimer.getLog();
+        int tHUDLeft = hudLeft;
+        int i1 = Math.max(0, fpsLog.length - halfScreenWidth);
+        int j1 = fpsLog.length - i1;
+        int frameIndex = frameTimer.wrapIndex(logStart + i1);
+        long msTotal = 0L;
+        int msMin = Integer.MAX_VALUE;
+        int msMax = Integer.MIN_VALUE;
+
+        for (int j2 = 0; j2 < j1; ++j2) {
+            int k2 = (int) (fpsLog[frameTimer.wrapIndex(frameIndex + j2)] / 1000000L);
+            msMin = Math.min(msMin, k2);
+            msMax = Math.max(msMax, k2);
+            msTotal += (long) k2;
+        }
+
+        GuiComponent.fill(pPoseStack, hudLeft, hudBottom - hudHeight, hudLeft + j1, hudBottom, -1873784752);
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+        RenderSystem.enableBlend();
+        RenderSystem.disableTexture();
+        RenderSystem.defaultBlendFunc();
+        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+
+        for (Matrix4f matrix4f = Transformation.identity().getMatrix(); frameIndex != logEnd; frameIndex = frameTimer.wrapIndex(frameIndex + 1)) {
+            int tScaled = frameTimer.scaleSampleTo(fpsLog[frameIndex], 30, 60);
+            int tClampMax = 60;
+            int tClamped = Mth.clamp(tScaled, 0, tClampMax);
+            int tColor = getSampleColor(tClamped, 0, tClampMax / 2, tClampMax);
+            int a = tColor >> 24 & 255;
+            int r = tColor >> 16 & 255;
+            int g = tColor >> 8 & 255;
+            int b = tColor & 255;
+            bufferbuilder.vertex(matrix4f, (float) (tHUDLeft + 1), (float) hudBottom, 0.0F).color(r, g, b, a).endVertex();
+            bufferbuilder.vertex(matrix4f, (float) (tHUDLeft + 1), (float) (hudBottom - tClamped + 1), 0.0F).color(r, g, b, a).endVertex();
+            bufferbuilder.vertex(matrix4f, (float) tHUDLeft, (float) (hudBottom - tClamped + 1), 0.0F).color(r, g, b, a).endVertex();
+            bufferbuilder.vertex(matrix4f, (float) tHUDLeft, (float) hudBottom, 0.0F).color(r, g, b, a).endVertex();
+
+            if (tScaled > tClamped) {
+                bufferbuilder.vertex(matrix4f, (float) (tHUDLeft + 1), (float) (hudBottom - tClamped - 2), 0.0F).color(r, g, b, a).endVertex();
+                bufferbuilder.vertex(matrix4f, (float) (tHUDLeft + 1), (float) (hudBottom - tClamped - 4), 0.0F).color(r, g, b, a).endVertex();
+                bufferbuilder.vertex(matrix4f, (float) tHUDLeft, (float) (hudBottom - tClamped - 4), 0.0F).color(r, g, b, a).endVertex();
+                bufferbuilder.vertex(matrix4f, (float) tHUDLeft, (float) (hudBottom - tClamped - 2), 0.0F).color(r, g, b, a).endVertex();
+            }
+
+            ++tHUDLeft;
+        }
+
+        bufferbuilder.end();
+        BufferUploader.end(bufferbuilder);
+        RenderSystem.enableTexture();
+        RenderSystem.disableBlend();
+
+        GuiComponent.fill(pPoseStack, hudLeft + 1, hudBottom - 30 + 1, hudLeft + 14, hudBottom - 30 + 10, -1873784752);
+        font.draw(pPoseStack, "60 FPS", (float) (hudLeft + 2), (float) (hudBottom - 30 + 2), 14737632);
+        hLine(pPoseStack, hudLeft, hudLeft + j1 - 1, hudBottom - 30, -1);
+        GuiComponent.fill(pPoseStack, hudLeft + 1, hudBottom - 60 + 1, hudLeft + 14, hudBottom - 60 + 10, -1873784752);
+        font.draw(pPoseStack, "30 FPS", (float) (hudLeft + 2), (float) (hudBottom - 60 + 2), 14737632);
+        hLine(pPoseStack, hudLeft, hudLeft + j1 - 1, hudBottom - 60, -1);
+
+        hLine(pPoseStack, hudLeft, hudLeft + j1 - 1, hudBottom - 1, -1);
+        vLine(pPoseStack, hudLeft, hudBottom - 60, hudBottom, -1);
+        vLine(pPoseStack, hudLeft + j1 - 1, hudBottom - 60, hudBottom, -1);
+
+        if (minecraft.options.framerateLimit > 0 && minecraft.options.framerateLimit <= 250) {
+            hLine(pPoseStack, hudLeft, hudLeft + j1 - 1, hudBottom - 1 - (int) (1800.0D / (double) minecraft.options.framerateLimit), -16711681);
+        }
+
+        String minText = msMin + " ms min";
+        String avgText = msTotal / (long) j1 + " ms avg";
+        String maxText = msMax + " ms max";
+        font.drawShadow(pPoseStack, minText, (float) (hudLeft + 2), (float) (hudBottom - 60 - 12), 14737632);
+        font.drawShadow(pPoseStack, avgText, (float) (hudLeft + j1 / 2 - font.width(avgText) / 2), (float) (hudBottom - 60 - 12), 14737632);
+        font.drawShadow(pPoseStack, maxText, (float) (hudLeft + j1 - font.width(maxText)), (float) (hudBottom - 60 - 12), 14737632);
 
         RenderSystem.enableDepthTest();
     }

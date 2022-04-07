@@ -48,7 +48,6 @@ This mod adds some (hopefully) useful tools for modpack development
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT or SERVER
     side="BOTH"
-# Here's another dependency
 [[dependencies.modpacktools]]
     modId="minecraft"
     mandatory=true

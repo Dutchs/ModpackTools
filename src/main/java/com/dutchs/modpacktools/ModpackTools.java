@@ -1,6 +1,7 @@
 package com.dutchs.modpacktools;
 
 import com.dutchs.modpacktools.client.ClientCommands;
+import com.dutchs.modpacktools.client.KeyInputHandler;
 import com.dutchs.modpacktools.client.SetupClient;
 import com.dutchs.modpacktools.command.SetupCommands;
 import com.dutchs.modpacktools.network.BlockPacket;
@@ -33,6 +34,7 @@ public class ModpackTools {
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(SetupClient::init));
         MinecraftForge.EVENT_BUS.register(ClientCommands.class);
+        MinecraftForge.EVENT_BUS.addListener(KeyInputHandler::onKeyInput);
 
         MinecraftForge.EVENT_BUS.register(SetupCommands.class);
         MinecraftForge.EVENT_BUS.register(ServerHandler.class);

@@ -45,7 +45,7 @@ public class ClientPollForPacket implements INetworkPacket {
     @Override
     public void handle(Object msg, Supplier<NetworkEvent.Context> contextSupplier) {
         contextSupplier.get().enqueueWork(() -> {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> handleClient((ClientPollForPacket)msg, contextSupplier));
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> handleClient((ClientPollForPacket) msg, contextSupplier));
         });
         contextSupplier.get().setPacketHandled(true);
     }
@@ -53,7 +53,7 @@ public class ClientPollForPacket implements INetworkPacket {
     private void handleClient(ClientPollForPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
         Minecraft instance = Minecraft.getInstance();
         if (instance.player != null) {
-            if(msg.pollFor == PollFor.Block || msg.pollFor == PollFor.BlockInv || msg.pollFor == PollFor.BlockInvNBT) {
+            if (msg.pollFor == PollFor.Block || msg.pollFor == PollFor.BlockInv || msg.pollFor == PollFor.BlockInvNBT) {
 
                 //HitResult lookingAt = Minecraft.getInstance().player.pick(20.0D, 0.0F, false);
                 HitResult hit = instance.hitResult;

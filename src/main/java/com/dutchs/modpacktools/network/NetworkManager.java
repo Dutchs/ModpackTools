@@ -26,7 +26,7 @@ public class NetworkManager {
     }
 
     @SafeVarargs
-    public final void registerPackets(Class<? extends INetworkPacket>... handledPacketClasses){
+    public final void registerPackets(Class<? extends INetworkPacket>... handledPacketClasses) {
         for (Class<? extends INetworkPacket> packetClass : handledPacketClasses) {
             try {
                 INetworkPacket instance = packetClass.getDeclaredConstructor().newInstance();
