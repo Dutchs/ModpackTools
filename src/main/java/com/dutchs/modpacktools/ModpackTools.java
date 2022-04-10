@@ -3,10 +3,7 @@ package com.dutchs.modpacktools;
 import com.dutchs.modpacktools.client.ClientCommands;
 import com.dutchs.modpacktools.client.KeyInputHandler;
 import com.dutchs.modpacktools.client.SetupClient;
-import com.dutchs.modpacktools.command.SetupCommands;
-import com.dutchs.modpacktools.network.BlockPacket;
-import com.dutchs.modpacktools.network.ClientPollForPacket;
-import com.dutchs.modpacktools.network.NetworkManager;
+import com.dutchs.modpacktools.network.*;
 import com.dutchs.modpacktools.server.ServerHandler;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,16 +27,15 @@ public class ModpackTools {
 
     public ModpackTools() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ConfigHandler.CLIENT_SPEC);
-//        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.COMMON_SPEC);
+        //ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.COMMON_SPEC);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(SetupClient::init));
         MinecraftForge.EVENT_BUS.register(ClientCommands.class);
         MinecraftForge.EVENT_BUS.addListener(KeyInputHandler::onKeyInput);
 
-        MinecraftForge.EVENT_BUS.register(SetupCommands.class);
         MinecraftForge.EVENT_BUS.register(ServerHandler.class);
 
         NETWORK = new NetworkManager(Constants.MODID);
-        NETWORK.registerPackets(BlockPacket.class, ClientPollForPacket.class);
+        NETWORK.registerPackets(BlockPacket.class, ClientBlockResultPacket.class, InventoryPacket.class, ClientInventoryResultPacket.class, EntityPacket.class, PrivilegedMessagePacket.class);
     }
 }

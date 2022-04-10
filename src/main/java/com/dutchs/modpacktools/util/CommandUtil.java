@@ -38,10 +38,10 @@ public class CommandUtil {
     }
 
     public static String createTPCommandBetweenDimensions(String target, ResourceKey<Level> fromDim, ResourceKey<Level> toDim, BlockPos pos) {
-        if(Objects.equals(fromDim, toDim)) {
-            return String.format("/tp @p %s %s %s", pos.getX(), pos.getY(), pos.getZ());
+        if (Objects.equals(fromDim, toDim)) {
+            return String.format("/tp %s %s %s %s", target, pos.getX(), pos.getY(), pos.getZ());
         } else {
-            return String.format("/execute in %s run tp @p %s %s %s", toDim.location(), pos.getX(), pos.getY(), pos.getZ());
+            return String.format("/execute in %s run tp %s %s %s %s", toDim.location(), target, pos.getX(), pos.getY(), pos.getZ());
         }
     }
 }

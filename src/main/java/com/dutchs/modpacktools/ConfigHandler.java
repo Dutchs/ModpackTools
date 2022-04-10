@@ -10,17 +10,11 @@ import org.apache.commons.lang3.tuple.Pair;
 public class ConfigHandler {
     static public final ClientConfig CLIENT_CONFIG;
     static public final ForgeConfigSpec CLIENT_SPEC;
-//    static public final CommonConfig COMMON_CONFIG;
-//    static public final  ForgeConfigSpec COMMON_SPEC;
 
     static {
         final Pair<ClientConfig, ForgeConfigSpec> clientSpecPair = new ForgeConfigSpec.Builder().configure(ClientConfig::new);
         CLIENT_CONFIG = clientSpecPair.getLeft();
         CLIENT_SPEC = clientSpecPair.getRight();
-
-//        final Pair<CommonConfig, ForgeConfigSpec> commonSpecPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
-//        COMMON_CONFIG = commonSpecPair.getLeft();
-//        COMMON_SPEC = commonSpecPair.getRight();
     }
 
     @SubscribeEvent
@@ -28,30 +22,26 @@ public class ConfigHandler {
         if (configEvent.getConfig().getSpec() == ConfigHandler.CLIENT_SPEC) {
             bakeClientConfig();
         }
-//        else if (configEvent.getConfig().getSpec() == ConfigHandler.COMMON_SPEC){
-//            bakeCommonConfig();
-//        }
     }
 
     //Client
     public static int chunkRendererDelay;
     public static int chunkRendererRadius;
     public static int hudEntityDelay;
+    public static boolean autoCopyItems;
 
     public static void bakeClientConfig() {
         chunkRendererDelay = CLIENT_CONFIG.chunkRendererDelay.get();
         chunkRendererRadius = CLIENT_CONFIG.chunkRendererRadius.get();
         hudEntityDelay = CLIENT_CONFIG.hudEntityDelay.get();
+        autoCopyItems = CLIENT_CONFIG.autoCopyItems.get();
     }
-
-//    public static void bakeCommonConfig() {
-//
-//    }
 
     public static class ClientConfig {
         public ForgeConfigSpec.IntValue chunkRendererDelay;
         public ForgeConfigSpec.IntValue chunkRendererRadius;
         public ForgeConfigSpec.IntValue hudEntityDelay;
+        public ForgeConfigSpec.BooleanValue autoCopyItems;
 
         public ClientConfig(ForgeConfigSpec.Builder builder) {
             builder.push("HUD");
@@ -62,14 +52,10 @@ public class ConfigHandler {
             hudEntityDelay = builder.comment("Delay between entity HUD data refreshes")
                     .defineInRange("hudEntityDelay", 250, 10, Integer.MAX_VALUE);
             builder.pop();
+            builder.push("Behavior");
+            autoCopyItems = builder.comment("Automatically copy items to clipboard when running commands to list them (mt hand/hot/inv/blockinv)")
+                    .define("autoCopyItems", true);
+            builder.pop();
         }
     }
-
-//    public static class CommonConfig {
-//
-//        public CommonConfig(ForgeConfigSpec.Builder builder) {
-//            builder.push("General");
-//            builder.pop();
-//        }
-//    }
 }
