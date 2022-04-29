@@ -1,13 +1,19 @@
 package com.dutchs.modpacktools.util;
 
+import com.dutchs.modpacktools.ModpackTools;
+import com.dutchs.modpacktools.network.*;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -43,5 +49,49 @@ public class CommandUtil {
         } else {
             return String.format("/execute in %s run tp %s %s %s %s", toDim.location(), target, pos.getX(), pos.getY(), pos.getZ());
         }
+    }
+
+    public static void SendBlockCommand(boolean nbt){
+        HitResult hit = Minecraft.getInstance().hitResult;
+        if ((hit != null ? hit.getType() : null) == HitResult.Type.BLOCK) {
+            BlockPos pos = ((BlockHitResult) hit).getBlockPos();
+            ModpackTools.NETWORK.toServer(new BlockPacket(pos, false, nbt));
+        } else {
+            ModpackTools.NETWORK.toServer(new PrivilegedMessagePacket("Not looking at valid block"));
+        }
+    }
+
+    public static void SendRecipeMakerCommand() {
+        RecipeMakerOpenGUIPacket recipeMakerPacket = new RecipeMakerOpenGUIPacket();
+        ModpackTools.NETWORK.toServer(recipeMakerPacket);
+    }
+
+    public static void SendBlockInvCommand(boolean nbt) {
+        HitResult hit = Minecraft.getInstance().hitResult;
+        if ((hit != null ? hit.getType() : null) == HitResult.Type.BLOCK) {
+            BlockPos pos = ((BlockHitResult) hit).getBlockPos();
+            ModpackTools.NETWORK.toServer(new BlockPacket(pos, true, nbt));
+        } else {
+            ModpackTools.NETWORK.toServer(new PrivilegedMessagePacket("Not looking at valid block"));
+        }
+    }
+
+    public static void SendHandCommand(boolean nbt) {
+        ModpackTools.NETWORK.toServer(new InventoryPacket(InventoryPacket.InventoryType.Hand, nbt));
+    }
+
+    public static void SendHotCommand(boolean nbt) {
+        ModpackTools.NETWORK.toServer(new InventoryPacket(InventoryPacket.InventoryType.Hotbar, nbt));
+    }
+
+    public static void SendInvCommand(boolean nbt) {
+        ModpackTools.NETWORK.toServer(new InventoryPacket(InventoryPacket.InventoryType.Inventory, nbt));
+    }
+
+    public static void SendEntityCommand(ResourceLocation pType, ResourceKey<Level> dim, int limit) {
+        String type = pType == null ? "" : pType.toString();
+        String dimension = dim == null ? "" : dim.location().toString();
+        EntityPacket entityPacket = new EntityPacket(type, dimension, limit);
+        ModpackTools.NETWORK.toServer(entityPacket);
     }
 }

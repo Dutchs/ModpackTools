@@ -27,13 +27,15 @@ import java.util.function.Supplier;
 public class BlockPacket implements INetworkPacket {
     private BlockPos blockPos;
     private boolean inventory;
+    private boolean includeNBT;
 
     public BlockPacket() {
     }
 
-    public BlockPacket(@NotNull BlockPos b, boolean inv) {
+    public BlockPacket(@NotNull BlockPos b, boolean inv, boolean nbt) {
         blockPos = b;
         inventory = inv;
+        includeNBT = nbt;
     }
 
     @Override
@@ -41,6 +43,7 @@ public class BlockPacket implements INetworkPacket {
         BlockPacket blockPacket = (BlockPacket) msg;
         packetBuffer.writeBlockPos(blockPacket.blockPos);
         packetBuffer.writeBoolean(blockPacket.inventory);
+        packetBuffer.writeBoolean(blockPacket.includeNBT);
     }
 
     @Override
@@ -48,6 +51,7 @@ public class BlockPacket implements INetworkPacket {
         BlockPacket result = new BlockPacket();
         result.blockPos = packetBuffer.readBlockPos();
         result.inventory = packetBuffer.readBoolean();
+        result.includeNBT = packetBuffer.readBoolean();
         return (MESSAGE) result;
     }
 
@@ -60,6 +64,7 @@ public class BlockPacket implements INetworkPacket {
                     BlockPacket blockPacket = (BlockPacket) msg;
                     BlockPos pos = blockPacket.blockPos;
                     boolean inv = blockPacket.inventory;
+                    boolean nbt = blockPacket.includeNBT;
                     Level level = p.getCommandSenderWorld();
                     if (LevelUtil.hasChunkFromBlockPos(level, pos)) {
                         BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -68,8 +73,8 @@ public class BlockPacket implements INetworkPacket {
                         if(inv) {
                             List<ItemStack> stacks = new ArrayList<>();
                             if(blockEntity != null) {
-                                CompoundTag nbt = blockEntity.saveWithoutMetadata();
-                                String lootTable = BlockUtil.getLootTable(nbt);
+                                CompoundTag tags = blockEntity.saveWithoutMetadata();
+                                String lootTable = BlockUtil.getLootTable(tags);
                                 if(lootTable != null) {
                                     p.sendMessage(ComponentUtil.formatKeyValueWithCopy("Evaluated LootTable", lootTable), Constants.MOD_SENDER_UUID);
                                 }
@@ -77,7 +82,7 @@ public class BlockPacket implements INetworkPacket {
 
                             int slots = BlockUtil.getContainerContents(blockEntity, stacks);
                             if (slots > 0) {
-                                String itemStacks = ItemStackUtil.ItemStackPrinter(stacks, true, false);
+                                String itemStacks = ItemStackUtil.ItemStackPrinter(stacks, nbt, false);
                                 ClientInventoryResultPacket resultPacket = new ClientInventoryResultPacket(InventoryPacket.InventoryType.BlockInventory, itemStacks == null ? "" : itemStacks);
                                 ModpackTools.NETWORK.toPlayer(resultPacket, p);
                             } else {
@@ -86,17 +91,18 @@ public class BlockPacket implements INetworkPacket {
                         } else {
                             String type = "";
                             String clazz = "";
-                            CompoundTag nbt = new CompoundTag();
+                            CompoundTag tags = new CompoundTag();
 
                             if (blockEntity != null) {
                                 if (blockEntity instanceof Container)
                                     type = "Container";
 
                                 clazz = blockEntity.getClass().getSimpleName();
-                                nbt = blockEntity.saveWithoutMetadata();
+                                if(nbt)
+                                    tags = blockEntity.saveWithoutMetadata();
                             }
 
-                            ClientBlockResultPacket result = new ClientBlockResultPacket(BlockUtil.getBlockStateRegisteryName(blockState).toString(), pos, type, clazz, nbt);
+                            ClientBlockResultPacket result = new ClientBlockResultPacket(BlockUtil.getBlockStateRegisteryName(blockState).toString(), pos, type, clazz, tags);
                             ModpackTools.NETWORK.toPlayer(result, p);
                         }
                     } else {

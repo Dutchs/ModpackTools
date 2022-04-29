@@ -36,6 +36,6 @@ public class ModpackTools {
         MinecraftForge.EVENT_BUS.register(ServerHandler.class);
 
         NETWORK = new NetworkManager(Constants.MODID);
-        NETWORK.registerPackets(BlockPacket.class, ClientBlockResultPacket.class, InventoryPacket.class, ClientInventoryResultPacket.class, EntityPacket.class, PrivilegedMessagePacket.class);
+        NETWORK.registerPackets(BlockPacket.class, ClientBlockResultPacket.class, InventoryPacket.class, ClientInventoryResultPacket.class, EntityPacket.class, PrivilegedMessagePacket.class, RecipeMakerOpenGUIPacket.class, RecipeMakerActionPacket.class, ClientRecipeMakerResultPacket.class);
     }
 }

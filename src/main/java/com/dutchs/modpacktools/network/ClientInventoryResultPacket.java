@@ -50,11 +50,12 @@ public class ClientInventoryResultPacket implements NetworkManager.INetworkPacke
 
     private void handleClient(ClientInventoryResultPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
         if (!StringUtil.isNullOrEmpty(msg.inventoryItems)) {
+            String newLinesItems = msg.inventoryItems.replace("\n", System.lineSeparator());
+
             if(ConfigHandler.autoCopyItems) {
-                String newLinesItems = msg.inventoryItems.replace("\n", System.lineSeparator());
                 Minecraft.getInstance().keyboardHandler.setClipboard(newLinesItems);
             }
-            PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContentWithCopy(msg.inventoryType.toString(), msg.inventoryItems));
+            PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContentWithCopy(msg.inventoryType.toString(), msg.inventoryItems, newLinesItems));
         } else {
             PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContent(msg.inventoryType.toString(), "Nothing to print"));
         }

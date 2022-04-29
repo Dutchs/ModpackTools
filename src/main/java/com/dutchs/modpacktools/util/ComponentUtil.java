@@ -40,6 +40,10 @@ public class ComponentUtil {
         return ComponentUtil.withCopy(formatTitleContent(title, content), content);
     }
 
+    public static Component formatTitleContentWithCopy(String title, String content, String copyContent) {
+        return ComponentUtil.withCopy(formatTitleContent(title, content), copyContent);
+    }
+
     public static Component formatTitleKeyValueWithCopy(String title, String key, String value) {
         MutableComponent comp = new TextComponent(title + "\n").withStyle(Constants.TITLE_FORMAT);
         comp.append(new TextComponent("----------------------------------\n").withStyle(Constants.BORDER_FORMAT));

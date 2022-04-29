@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent;
@@ -115,10 +116,14 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
                         info.left++;
                         Tuple<Integer, List<String>> right = info.right.getOrDefault(e.blockPosition(), new Tuple<>(0, new ArrayList<>()));
                         right.setA(right.getA() + 1);
-                        if (e instanceof ItemEntity item) {
-                            ResourceLocation itemID = item.getItem().getItem().getRegistryName();
+                        if (e instanceof ItemEntity itemEntity) {
+                            ResourceLocation itemID = itemEntity.getItem().getItem().getRegistryName();
                             right.getB().add(itemID != null ? itemID.toString() : "null");
+                        } else if (e instanceof FallingBlockEntity blockEntity) {
+                            ResourceLocation blockID = blockEntity.getBlockState().getBlock().getRegistryName();
+                            right.getB().add(blockID != null ? blockID.toString() : "null");
                         }
+
                         info.right.put(e.blockPosition(), right);
                     });
 

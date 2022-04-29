@@ -21,24 +21,28 @@ public class InventoryPacket implements INetworkPacket {
     }
 
     private InventoryType inventoryType;
+    private boolean includeNBT;
 
     public InventoryPacket() {
     }
 
-    public InventoryPacket(@NotNull InventoryType type) {
+    public InventoryPacket(@NotNull InventoryType type, boolean nbt) {
         inventoryType = type;
+        includeNBT = nbt;
     }
 
     @Override
     public void encode(Object msg, FriendlyByteBuf packetBuffer) {
         InventoryPacket blockPacket = (InventoryPacket) msg;
         packetBuffer.writeEnum(blockPacket.inventoryType);
+        packetBuffer.writeBoolean(blockPacket.includeNBT);
     }
 
     @Override
     public <MESSAGE> MESSAGE decode(FriendlyByteBuf packetBuffer) {
         InventoryPacket result = new InventoryPacket();
         result.inventoryType = packetBuffer.readEnum(InventoryType.class);
+        result.includeNBT = packetBuffer.readBoolean();
         return (MESSAGE) result;
     }
 
@@ -50,14 +54,15 @@ public class InventoryPacket implements INetworkPacket {
                 if(p.hasPermissions( 2)) {
                     InventoryPacket inventoryPacket = (InventoryPacket) msg;
                     InventoryType type = inventoryPacket.inventoryType;
+                    boolean nbt = inventoryPacket.includeNBT;
 
                     String itemStacks = null;
                     if (type == InventoryType.Hand) {
-                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getMainHandItem(), true, false);
+                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getMainHandItem(), nbt, false);
                     } else if (type == InventoryType.Hotbar) {
-                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(0, 9), true, false);
+                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(0, 9), nbt, false);
                     } else if (type == InventoryType.Inventory) {
-                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(9, 36), true, false);
+                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(9, 36), nbt, false);
                     }
 
                     ClientInventoryResultPacket result = new ClientInventoryResultPacket(type, itemStacks == null ? "" : itemStacks);

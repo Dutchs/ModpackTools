@@ -1,13 +1,9 @@
 package com.dutchs.modpacktools.client;
 
 import com.dutchs.modpacktools.Constants;
-import com.dutchs.modpacktools.ModpackTools;
 import com.dutchs.modpacktools.command.DimensionResourceArgument;
 import com.dutchs.modpacktools.debug.HUDManager;
-import com.dutchs.modpacktools.network.BlockPacket;
-import com.dutchs.modpacktools.network.EntityPacket;
-import com.dutchs.modpacktools.network.InventoryPacket;
-import com.dutchs.modpacktools.network.PrivilegedMessagePacket;
+import com.dutchs.modpacktools.util.CommandUtil;
 import com.dutchs.modpacktools.util.PlayerUtil;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -18,13 +14,10 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -55,64 +48,93 @@ public class ClientCommands {
                                         .executes(ctx -> ENTITY_Command(ctx, ctx.getArgument("entitytype", ResourceLocation.class), null, 10)))
                                 .executes(ctx -> ENTITY_Command(ctx, null, null, 10))
                         )
-                        .then(Commands.literal("hand").executes(ClientCommands::HAND_Command))
-                        .then(Commands.literal("hot").executes(ClientCommands::HOT_Command))
-                        .then(Commands.literal("inv").executes(ClientCommands::INV_Command))
-                        .then(Commands.literal("block").executes(ClientCommands::BLOCK_Command))
-                        .then(Commands.literal("blockinv").executes(ClientCommands::BLOCKINV_Command))
+                        .then(Commands.literal("block").executes(ClientCommands::BLOCK_Command)
+                                .then(Commands.literal("noNBT").executes((ctx) -> BLOCK_Command(ctx, false)))
+                        )
+                        .then(Commands.literal("blockinv").executes(ClientCommands::BLOCKINV_Command)
+                                .then(Commands.literal("noNBT").executes((ctx) -> BLOCKINV_Command(ctx, false)))
+                        )
+                        .then(Commands.literal("hand").executes(ClientCommands::HAND_Command)
+                                .then(Commands.literal("noNBT").executes((ctx) -> HAND_Command(ctx, false)))
+                        )
+                        .then(Commands.literal("hot").executes(ClientCommands::HOT_Command)
+                                .then(Commands.literal("noNBT").executes((ctx) -> HOT_Command(ctx, false)))
+                        )
+                        .then(Commands.literal("inv").executes(ClientCommands::INV_Command)
+                                .then(Commands.literal("noNBT").executes((ctx) -> INV_Command(ctx, false)))
+                        )
+                        .then(Commands.literal("recipemaker").executes(ClientCommands::RECIPEMAKER_Command)
+                        )
         );
 
         event.getDispatcher().register(Commands.literal("mt")
                 .redirect(rootCommand));
     }
 
-    private static int BLOCK_Command(CommandContext<CommandSourceStack> ctx) {
-        HitResult hit = Minecraft.getInstance().hitResult;
-        if ((hit != null ? hit.getType() : null) == HitResult.Type.BLOCK) {
-            BlockPos pos = ((BlockHitResult) hit).getBlockPos();
-            ModpackTools.NETWORK.toServer(new BlockPacket(pos, false));
-        } else {
-            ModpackTools.NETWORK.toServer(new PrivilegedMessagePacket("Not looking at valid block"));
-        }
-
-        return 0;
-    }
-
-    private static int BLOCKINV_Command(CommandContext<CommandSourceStack> ctx) {
-        HitResult hit = Minecraft.getInstance().hitResult;
-        if ((hit != null ? hit.getType() : null) == HitResult.Type.BLOCK) {
-            BlockPos pos = ((BlockHitResult) hit).getBlockPos();
-            ModpackTools.NETWORK.toServer(new BlockPacket(pos, true));
-        } else {
-            ModpackTools.NETWORK.toServer(new PrivilegedMessagePacket("Not looking at valid block"));
-        }
-
-        return 0;
-    }
-
+    //================================
+    //General
+    //================================
     private static int ENTITY_Command(CommandContext<CommandSourceStack> ctx, @Nullable ResourceLocation pType, @Nullable ResourceKey<Level> dim, int limit) {
-        String type = pType == null ? "" : pType.toString();
-        String dimension = dim == null ? "" : dim.location().toString();
-        EntityPacket entityPacket = new EntityPacket(type, dimension, limit);
-        ModpackTools.NETWORK.toServer(entityPacket);
+        CommandUtil.SendEntityCommand(pType, dim, limit);
+        return 0;
+    }
+
+    private static int BLOCK_Command(CommandContext<CommandSourceStack> ctx) {
+        return BLOCK_Command(ctx, true);
+    }
+
+    private static int BLOCK_Command(CommandContext<CommandSourceStack> ctx, boolean nbt) {
+        CommandUtil.SendBlockCommand(nbt);
+        return 0;
+    }
+
+    private static int RECIPEMAKER_Command(CommandContext<CommandSourceStack> ctx) {
+        CommandUtil.SendRecipeMakerCommand();
+        return 0;
+    }
+
+    //================================
+    //Copy item id's
+    //================================
+    private static int BLOCKINV_Command(CommandContext<CommandSourceStack> ctx) {
+        return BLOCKINV_Command(ctx, true);
+    }
+
+    private static int BLOCKINV_Command(CommandContext<CommandSourceStack> ctx, boolean nbt) {
+        CommandUtil.SendBlockInvCommand(nbt);
         return 0;
     }
 
     private static int HAND_Command(CommandContext<CommandSourceStack> ctx) {
-        ModpackTools.NETWORK.toServer(new InventoryPacket(InventoryPacket.InventoryType.Hand));
+        return HAND_Command(ctx, true);
+    }
+
+    private static int HAND_Command(CommandContext<CommandSourceStack> ctx, boolean nbt) {
+        CommandUtil.SendHandCommand(nbt);
         return 0;
     }
 
     private static int HOT_Command(CommandContext<CommandSourceStack> ctx) {
-        ModpackTools.NETWORK.toServer(new InventoryPacket(InventoryPacket.InventoryType.Hotbar));
+        return HOT_Command(ctx, true);
+    }
+
+    private static int HOT_Command(CommandContext<CommandSourceStack> ctx, boolean nbt) {
+        CommandUtil.SendHotCommand(nbt);
         return 0;
     }
 
     private static int INV_Command(CommandContext<CommandSourceStack> ctx) {
-        ModpackTools.NETWORK.toServer(new InventoryPacket(InventoryPacket.InventoryType.Inventory));
+        return INV_Command(ctx, true);
+    }
+
+    private static int INV_Command(CommandContext<CommandSourceStack> ctx, boolean nbt) {
+        CommandUtil.SendInvCommand(nbt);
         return 0;
     }
 
+    //================================
+    //HUDs
+    //================================
     private static int TPSHUD_Command(CommandContext<CommandSourceStack> ctx) {
         if (Minecraft.getInstance().hasSingleplayerServer()) {
             HUDManager.RENDERTPS = !HUDManager.RENDERTPS;

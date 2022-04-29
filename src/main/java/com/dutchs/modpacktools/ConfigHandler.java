@@ -53,7 +53,7 @@ public class ConfigHandler {
                     .defineInRange("hudEntityDelay", 250, 10, Integer.MAX_VALUE);
             builder.pop();
             builder.push("Behavior");
-            autoCopyItems = builder.comment("Automatically copy items to clipboard when running commands to list them (mt hand/hot/inv/blockinv)")
+            autoCopyItems = builder.comment("Automatically copy data to clipboard when running commands to list them (mt hand/hot/inv/blockinv/recipemaker)")
                     .define("autoCopyItems", true);
             builder.pop();
         }

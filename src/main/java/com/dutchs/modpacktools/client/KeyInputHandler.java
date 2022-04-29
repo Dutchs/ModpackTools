@@ -1,6 +1,7 @@
 package com.dutchs.modpacktools.client;
 
 import com.dutchs.modpacktools.debug.HUDManager;
+import com.dutchs.modpacktools.util.CommandUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.InputEvent;
 
@@ -26,6 +27,28 @@ public class KeyInputHandler {
                     HUDManager.RENDERENTITY = !HUDManager.RENDERENTITY;
                 }
             }
+        }
+
+        if (KeyBinds.mapCMDHand.consumeClick()) {
+            CommandUtil.SendHandCommand(true);
+        }
+        if (KeyBinds.mapCMDHot.consumeClick()) {
+            CommandUtil.SendHotCommand(true);
+        }
+        if (KeyBinds.mapCMDInv.consumeClick()) {
+            CommandUtil.SendInvCommand(true);
+        }
+        if (KeyBinds.mapCMDBlockInv.consumeClick()) {
+            CommandUtil.SendBlockInvCommand(true);
+        }
+        if (KeyBinds.mapCMDBlock.consumeClick()) {
+            CommandUtil.SendBlockCommand(true);
+        }
+        if (KeyBinds.mapCMDRecipe.consumeClick()) {
+            CommandUtil.SendRecipeMakerCommand();
+        }
+        if (KeyBinds.mapCMDEntity.consumeClick()) {
+            CommandUtil.SendEntityCommand(null, null, -1);
         }
     }
 }
