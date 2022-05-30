@@ -1,6 +1,7 @@
 package com.dutchs.modpacktools.network;
 
 import com.dutchs.modpacktools.Constants;
+import com.dutchs.modpacktools.gui.RecipeMakerMenu;
 import com.dutchs.modpacktools.gui.RecipeMakerMenuProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextComponent;
@@ -32,14 +33,7 @@ public class RecipeMakerOpenGUIPacket implements NetworkManager.INetworkPacket {
             ServerPlayer p = contextSupplier.get().getSender();
             if (p != null) {
                 if (p.hasPermissions(2)) {
-                    //RecipeMakerOpenGUIPacket openGUIPacket = (RecipeMakerOpenGUIPacket) msg;
-
-                    //I _probably_ don't need to handle this.
-                    //if (p.containerMenu instanceof RecipeMakerMenu) {
-                        //p.closeContainer();
-                    //} else {
                     NetworkHooks.openGui(p, new RecipeMakerMenuProvider(), p.blockPosition());
-                    //}
                 } else {
                     p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
                 }

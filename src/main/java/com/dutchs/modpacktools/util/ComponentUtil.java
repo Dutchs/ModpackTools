@@ -12,6 +12,7 @@ public class ComponentUtil {
     private static final HoverEvent HOVEREVENT_SUGGEST_COMMAND = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Copy Command"));
     private static final HoverEvent HOVEREVENT_RUN_COMMAND = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Run Command"));
     private static final HoverEvent HOVEREVENT_TELEPORT_COMMAND = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Teleport"));
+    private static final HoverEvent HOVEREVENT_OPEN_FILE = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Open File"));
 
     public static Component withCopy(Component component, String copyText) {
         return component.copy().withStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, copyText)).withHoverEvent(HOVEREVENT_COPY));
@@ -25,6 +26,10 @@ public class ComponentUtil {
         return component.copy().withStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, commandText)).withHoverEvent(HOVEREVENT_RUN_COMMAND));
     }
 
+    public static Component withOpenFile(Component component, String commandText) {
+        return component.copy().withStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, commandText)).withHoverEvent(HOVEREVENT_OPEN_FILE));
+    }
+
     public static Component withTeleportCommand(Component component, String commandText) {
         return component.copy().withStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, commandText)).withHoverEvent(HOVEREVENT_TELEPORT_COMMAND));
     }
@@ -33,6 +38,14 @@ public class ComponentUtil {
         MutableComponent comp = new TextComponent(title + "\n").withStyle(Constants.TITLE_FORMAT);
         comp.append(new TextComponent("----------------------------------\n").withStyle(Constants.BORDER_FORMAT));
         comp.append(new TextComponent(content + "\n").withStyle(Constants.CHAT_FORMAT));
+        return comp;
+    }
+
+    public static Component formatTitleContent(String title, Component content) {
+        MutableComponent comp = new TextComponent(title + "\n").withStyle(Constants.TITLE_FORMAT);
+        comp.append(new TextComponent("----------------------------------\n").withStyle(Constants.BORDER_FORMAT));
+        comp.append(content);
+        comp.append("\n");
         return comp;
     }
 

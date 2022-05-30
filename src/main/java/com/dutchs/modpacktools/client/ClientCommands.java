@@ -4,6 +4,8 @@ import com.dutchs.modpacktools.Constants;
 import com.dutchs.modpacktools.command.DimensionResourceArgument;
 import com.dutchs.modpacktools.debug.HUDManager;
 import com.dutchs.modpacktools.util.CommandUtil;
+import com.dutchs.modpacktools.util.ComponentUtil;
+import com.dutchs.modpacktools.util.FileUtil;
 import com.dutchs.modpacktools.util.PlayerUtil;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -17,8 +19,23 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.stats.StatType;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.StructureFeature;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
+import net.minecraftforge.common.world.ForgeWorldPreset;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -36,6 +53,21 @@ public class ClientCommands {
                                 .then(Commands.literal("tps").executes(ClientCommands::TPSHUD_Command))
                                 .then(Commands.literal("chunk").executes(ClientCommands::CHUNKHUD_Command))
                                 .then(Commands.literal("entity").executes(ClientCommands::ENTITYHUD_Command))
+                        )
+                        .then(Commands.literal("dump")
+                                .then(Commands.literal("items").executes(ClientCommands::ITEMSDUMP_Command))
+                                .then(Commands.literal("blocks").executes(ClientCommands::BLOCKSDUMP_Command))
+                                //.then(Commands.literal("recipes").executes(ClientCommands::RECIPESDUMP_Command))
+                                .then(Commands.literal("enchants").executes(ClientCommands::ENCHANTSDUMP_Command))
+                                .then(Commands.literal("entities").executes(ClientCommands::ENTITIESDUMP_Command))
+                                .then(Commands.literal("attributes").executes(ClientCommands::ATTRIBUTESDUMP_COMMAND))
+                                .then(Commands.literal("biomes").executes(ClientCommands::BIOMESDUMP_COMMAND))
+                                .then(Commands.literal("features").executes(ClientCommands::FEATURESDUMP_COMMAND))
+                                .then(Commands.literal("fluids").executes(ClientCommands::FLUIDSDUMP_COMMAND))
+                                .then(Commands.literal("mob_effects").executes(ClientCommands::MOB_EFFECTSDUMP_COMMAND))
+                                .then(Commands.literal("structure_features").executes(ClientCommands::STRUCTURE_FEATURESDUMP_COMMAND))
+                                .then(Commands.literal("stat_types").executes(ClientCommands::STAT_TYPESDUMP_COMMAND))
+                                .then(Commands.literal("world_types").executes(ClientCommands::WORLD_TYPESDUMP_COMMAND))
                         )
                         .then(Commands.literal("entity").then(Commands.argument("entitytype", ResourceLocationArgument.id())
                                         .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(ForgeRegistries.ENTITIES.getKeys().stream().map(ResourceLocation::toString), builder))
@@ -179,9 +211,142 @@ public class ClientCommands {
         return 0;
     }
 
-    private static int CLEARHUD_Command(CommandContext<CommandSourceStack> commandSourceStackCommandContext) {
+    private static int CLEARHUD_Command(CommandContext<CommandSourceStack> ctx) {
         HUDManager.clearHUD();
 
         return 0;
+    }
+
+    //================================
+    //DUMP
+    //================================
+    private static int ITEMSDUMP_Command(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (Item e : ForgeRegistries.ITEMS) {
+            if (e == Items.AIR) continue;
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("items", builder);
+        return 0;
+    }
+
+    private static int BLOCKSDUMP_Command(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (Block e : ForgeRegistries.BLOCKS) {
+            if (e == Blocks.AIR) continue;
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("blocks", builder);
+        return 0;
+    }
+
+//    private static int RECIPESDUMP_Command(CommandContext<CommandSourceStack> ctx) {
+//        //TODO
+//        return 0;
+//    }
+
+    private static int ENCHANTSDUMP_Command(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (Enchantment e : ForgeRegistries.ENCHANTMENTS) {
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("enchantments", builder);
+        return 0;
+    }
+
+    private static int ENTITIESDUMP_Command(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (EntityType<?> e : ForgeRegistries.ENTITIES) {
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("entities", builder);
+        return 0;
+    }
+
+    private static int ATTRIBUTESDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (Attribute e : ForgeRegistries.ATTRIBUTES) {
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("attributes", builder);
+        return 0;
+    }
+
+    private static int BIOMESDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (Biome e : ForgeRegistries.BIOMES) {
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("biomes", builder);
+        return 0;
+    }
+
+    private static int FEATURESDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (Feature<?> e : ForgeRegistries.FEATURES) {
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("features", builder);
+        return 0;
+    }
+
+    private static int FLUIDSDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (Fluid e : ForgeRegistries.FLUIDS) {
+            if (e == Fluids.EMPTY)
+                continue;
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("fluids", builder);
+        return 0;
+    }
+
+    private static int MOB_EFFECTSDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (MobEffect e : ForgeRegistries.MOB_EFFECTS) {
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("mob_effects", builder);
+        return 0;
+    }
+
+    private static int STRUCTURE_FEATURESDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (StructureFeature<?> e : ForgeRegistries.STRUCTURE_FEATURES) {
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("structure_features", builder);
+        return 0;
+    }
+
+    private static int STAT_TYPESDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (StatType<?> e : ForgeRegistries.STAT_TYPES) {
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("stat_types", builder);
+        return 0;
+    }
+
+    private static int WORLD_TYPESDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (ForgeWorldPreset e : ForgeRegistries.WORLD_TYPES) {
+            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+        }
+        writeDumpFile("world_types", builder);
+        return 0;
+    }
+
+    private static void writeDumpFile(String name, StringBuilder stringBuilder) {
+        boolean result = false;
+        String path = FileUtil.getDumpFileName(name + "_dump");
+        if (path != null) {
+            result = FileUtil.writeToFile(path, stringBuilder);
+        }
+        if (result) {
+            PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContent("Dumping: " + name, ComponentUtil.withOpenFile(new TextComponent(path).withStyle(Constants.OPEN_FILE_FORMAT), path)));
+        } else {
+            PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContent("Dumping: " + name, new TextComponent("Failed").withStyle(Constants.ERROR_FORMAT)));
+        }
     }
 }

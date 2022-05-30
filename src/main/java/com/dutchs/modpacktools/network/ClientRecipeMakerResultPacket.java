@@ -22,9 +22,9 @@ public class ClientRecipeMakerResultPacket implements NetworkManager.INetworkPac
     public ClientRecipeMakerResultPacket() {
     }
 
-    public ClientRecipeMakerResultPacket(@NotNull RecipeMakerActionPacket.RecipeMakerActionType type, @NotNull String items, @NotNull String input, @NotNull String output) {
+    public ClientRecipeMakerResultPacket(@NotNull RecipeMakerActionPacket.RecipeMakerActionType type, @NotNull String json, @NotNull String input, @NotNull String output) {
         recipeType = type;
-        recipeJSON = items;
+        recipeJSON = json;
         recipeInput = input;
         recipeOutput = output;
     }

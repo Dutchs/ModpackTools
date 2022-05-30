@@ -1,11 +1,15 @@
 package com.dutchs.modpacktools.util;
 
+import com.google.common.collect.Maps;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class ItemStackUtil {
@@ -49,5 +53,17 @@ public class ItemStackUtil {
         }
 
         return nothingToPrint ? null : line.toString();
+    }
+
+    public static Map<String, Integer> ItemStackCounter(List<ItemStack> input) {
+        Map<String, Integer> itemCounter = Maps.newLinkedHashMap();
+        for (ItemStack stack : input) {
+            Item item = stack.getItem();
+            if (item != Items.AIR) {
+                String itemName = item.getRegistryName().toString();
+                itemCounter.merge(itemName, 1, Integer::sum);
+            }
+        }
+        return itemCounter;
     }
 }

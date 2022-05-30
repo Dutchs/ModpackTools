@@ -7,6 +7,7 @@ import com.dutchs.modpacktools.network.*;
 import com.dutchs.modpacktools.server.ServerHandler;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -31,7 +32,7 @@ public class ModpackTools {
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(SetupClient::init));
         MinecraftForge.EVENT_BUS.register(ClientCommands.class);
-        MinecraftForge.EVENT_BUS.addListener(KeyInputHandler::onKeyInput);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, KeyInputHandler::onKeyInput);
 
         MinecraftForge.EVENT_BUS.register(ServerHandler.class);
 
