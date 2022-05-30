@@ -35,7 +35,6 @@ import net.minecraft.world.level.levelgen.feature.StructureFeature;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
-import net.minecraftforge.common.world.ForgeWorldPreset;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -55,19 +54,20 @@ public class ClientCommands {
                                 .then(Commands.literal("entity").executes(ClientCommands::ENTITYHUD_Command))
                         )
                         .then(Commands.literal("dump")
-                                .then(Commands.literal("items").executes(ClientCommands::ITEMSDUMP_Command))
-                                .then(Commands.literal("blocks").executes(ClientCommands::BLOCKSDUMP_Command))
-                                //.then(Commands.literal("recipes").executes(ClientCommands::RECIPESDUMP_Command))
-                                .then(Commands.literal("enchants").executes(ClientCommands::ENCHANTSDUMP_Command))
-                                .then(Commands.literal("entities").executes(ClientCommands::ENTITIESDUMP_Command))
-                                .then(Commands.literal("attributes").executes(ClientCommands::ATTRIBUTESDUMP_COMMAND))
-                                .then(Commands.literal("biomes").executes(ClientCommands::BIOMESDUMP_COMMAND))
-                                .then(Commands.literal("features").executes(ClientCommands::FEATURESDUMP_COMMAND))
-                                .then(Commands.literal("fluids").executes(ClientCommands::FLUIDSDUMP_COMMAND))
-                                .then(Commands.literal("mob_effects").executes(ClientCommands::MOB_EFFECTSDUMP_COMMAND))
-                                .then(Commands.literal("structure_features").executes(ClientCommands::STRUCTURE_FEATURESDUMP_COMMAND))
-                                .then(Commands.literal("stat_types").executes(ClientCommands::STAT_TYPESDUMP_COMMAND))
-                                .then(Commands.literal("world_types").executes(ClientCommands::WORLD_TYPESDUMP_COMMAND))
+                                        .then(Commands.literal("all").executes(ClientCommands::ALLDUMP_Command))
+                                        .then(Commands.literal("items").executes(ClientCommands::ITEMSDUMP_Command))
+                                        .then(Commands.literal("blocks").executes(ClientCommands::BLOCKSDUMP_Command))
+                                        //.then(Commands.literal("recipes").executes(ClientCommands::RECIPESDUMP_Command))
+                                        .then(Commands.literal("enchants").executes(ClientCommands::ENCHANTSDUMP_Command))
+                                        .then(Commands.literal("entities").executes(ClientCommands::ENTITIESDUMP_Command))
+                                        .then(Commands.literal("attributes").executes(ClientCommands::ATTRIBUTESDUMP_COMMAND))
+                                        .then(Commands.literal("biomes").executes(ClientCommands::BIOMESDUMP_COMMAND))
+                                        .then(Commands.literal("features").executes(ClientCommands::FEATURESDUMP_COMMAND))
+                                        .then(Commands.literal("fluids").executes(ClientCommands::FLUIDSDUMP_COMMAND))
+                                        .then(Commands.literal("mob_effects").executes(ClientCommands::MOB_EFFECTSDUMP_COMMAND))
+                                        .then(Commands.literal("structure_features").executes(ClientCommands::STRUCTURE_FEATURESDUMP_COMMAND))
+                                        .then(Commands.literal("stat_types").executes(ClientCommands::STAT_TYPESDUMP_COMMAND))
+                                //.then(Commands.literal("world_types").executes(ClientCommands::WORLD_TYPESDUMP_COMMAND))
                         )
                         .then(Commands.literal("entity").then(Commands.argument("entitytype", ResourceLocationArgument.id())
                                         .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(ForgeRegistries.ENTITIES.getKeys().stream().map(ResourceLocation::toString), builder))
@@ -220,6 +220,21 @@ public class ClientCommands {
     //================================
     //DUMP
     //================================
+    private static int ALLDUMP_Command(CommandContext<CommandSourceStack> ctx) {
+        ITEMSDUMP_Command(ctx);
+        BLOCKSDUMP_Command(ctx);
+        ENCHANTSDUMP_Command(ctx);
+        ENTITIESDUMP_Command(ctx);
+        ATTRIBUTESDUMP_COMMAND(ctx);
+        BIOMESDUMP_COMMAND(ctx);
+        FEATURESDUMP_COMMAND(ctx);
+        FLUIDSDUMP_COMMAND(ctx);
+        MOB_EFFECTSDUMP_COMMAND(ctx);
+        STRUCTURE_FEATURESDUMP_COMMAND(ctx);
+        STAT_TYPESDUMP_COMMAND(ctx);
+        return 0;
+    }
+
     private static int ITEMSDUMP_Command(CommandContext<CommandSourceStack> ctx) {
         StringBuilder builder = new StringBuilder();
         for (Item e : ForgeRegistries.ITEMS) {
@@ -328,14 +343,14 @@ public class ClientCommands {
         return 0;
     }
 
-    private static int WORLD_TYPESDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
-        StringBuilder builder = new StringBuilder();
-        for (ForgeWorldPreset e : ForgeRegistries.WORLD_TYPES) {
-            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
-        }
-        writeDumpFile("world_types", builder);
-        return 0;
-    }
+//    private static int WORLD_TYPESDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
+//        StringBuilder builder = new StringBuilder();
+//        for (ForgeWorldPreset e : ForgeRegistries.WORLD_TYPES) {
+//            builder.append(e.getRegistryName().toString()).append(System.lineSeparator());
+//        }
+//        writeDumpFile("world_types", builder);
+//        return 0;
+//    }
 
     private static void writeDumpFile(String name, StringBuilder stringBuilder) {
         boolean result = false;
