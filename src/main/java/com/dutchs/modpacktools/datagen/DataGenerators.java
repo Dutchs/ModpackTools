@@ -15,7 +15,7 @@ public class DataGenerators {
 //        if (event.includeServer()) {
 //        }
         if (event.includeClient()) {
-            generator.addProvider(new ModLanguageProvider(generator, "en_us"));
+            generator.addProvider(true, new ModLanguageProvider(generator, "en_us"));
         }
     }
 }

@@ -5,7 +5,7 @@ import com.dutchs.modpacktools.ModpackTools;
 import com.dutchs.modpacktools.network.NetworkManager.INetworkPacket;
 import com.dutchs.modpacktools.util.ItemStackUtil;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +51,7 @@ public class InventoryPacket implements INetworkPacket {
         contextSupplier.get().enqueueWork(() -> {
             ServerPlayer p = contextSupplier.get().getSender();
             if (p != null) {
-                if(p.hasPermissions( 2)) {
+                if (p.hasPermissions(2)) {
                     InventoryPacket inventoryPacket = (InventoryPacket) msg;
                     InventoryType type = inventoryPacket.inventoryType;
                     boolean nbt = inventoryPacket.includeNBT;
@@ -68,7 +68,7 @@ public class InventoryPacket implements INetworkPacket {
                     ClientInventoryResultPacket result = new ClientInventoryResultPacket(type, itemStacks == null ? "" : itemStacks);
                     ModpackTools.NETWORK.toPlayer(result, p);
                 } else {
-                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                    p.sendSystemMessage(Component.literal("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT));
                 }
             }
         });

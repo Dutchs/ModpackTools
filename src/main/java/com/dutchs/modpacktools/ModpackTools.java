@@ -4,6 +4,7 @@ import com.dutchs.modpacktools.client.ClientCommands;
 import com.dutchs.modpacktools.client.KeyInputHandler;
 import com.dutchs.modpacktools.client.SetupClient;
 import com.dutchs.modpacktools.network.*;
+import com.dutchs.modpacktools.registry.ContainerRegistry;
 import com.dutchs.modpacktools.server.ServerHandler;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,6 +31,7 @@ public class ModpackTools {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ConfigHandler.CLIENT_SPEC);
         //ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.COMMON_SPEC);
 
+        ContainerRegistry.init(FMLJavaModLoadingContext.get().getModEventBus());
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(SetupClient::init));
         MinecraftForge.EVENT_BUS.register(ClientCommands.class);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, KeyInputHandler::onKeyInput);

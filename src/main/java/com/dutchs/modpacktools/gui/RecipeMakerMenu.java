@@ -1,6 +1,7 @@
 package com.dutchs.modpacktools.gui;
 
 import com.dutchs.modpacktools.registry.ContainerRegistry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -25,7 +26,7 @@ public class RecipeMakerMenu extends AbstractContainerMenu {
     private final Player player;
 
     public RecipeMakerMenu(int id, Inventory inventory, Player player) {
-        super(ContainerRegistry.RECIPE_MAKER, id);
+        super(ContainerRegistry.RECIPE_MAKER.get(), id);
         this.player = player;
         this.addSlot(new Slot(this.resultSlots, 0, 124, 35));
 

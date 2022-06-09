@@ -1,7 +1,6 @@
 package com.dutchs.modpacktools.gui;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -15,7 +14,7 @@ public class RecipeMakerMenuProvider implements MenuProvider {
 
     @Override
     public @NotNull Component getDisplayName() {
-        return new TextComponent("Recipe Maker");
+        return Component.literal("Recipe Maker");
     }
 
     @Override

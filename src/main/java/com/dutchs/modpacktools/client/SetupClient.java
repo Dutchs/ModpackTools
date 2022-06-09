@@ -16,7 +16,7 @@ public class SetupClient {
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CHAT_PANEL_ELEMENT, "tpshud", TPSOverlay.TPS_HUD);
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CHAT_PANEL_ELEMENT, "fpshud", FPSOverlay.FPS_HUD);
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CHAT_PANEL_ELEMENT, "entityhud", EntityOverlay.ENTITY_HUD);
-        MenuScreens.register(ContainerRegistry.RECIPE_MAKER, RecipeMakerScreen::new);
+        MenuScreens.register(ContainerRegistry.RECIPE_MAKER.get(), RecipeMakerScreen::new);
         KeyBinds.init();
     }
 }

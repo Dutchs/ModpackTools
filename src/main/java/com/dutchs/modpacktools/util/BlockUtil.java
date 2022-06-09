@@ -7,6 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BlockUtil {
 
     public static ResourceLocation getBlockStateRegisteryName(BlockState state) {
-        return state.getBlock().getRegistryName();
+        return ForgeRegistries.BLOCKS.getKey(state.getBlock());
     }
 
     public static boolean hasItemHandlerCapability(BlockEntity blockEntity) {

@@ -148,8 +148,7 @@ public class RenderUtil {
             }
         }
 
-        buffer.end();
-        BufferUploader.end(buffer);
+        BufferUploader.drawWithShader(buffer.end());
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
 
@@ -237,8 +236,7 @@ public class RenderUtil {
             ++tHUDLeft;
         }
 
-        bufferbuilder.end();
-        BufferUploader.end(bufferbuilder);
+        BufferUploader.drawWithShader(bufferbuilder.end());
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
 
@@ -253,8 +251,9 @@ public class RenderUtil {
         vLine(pPoseStack, hudLeft, hudBottom - 60, hudBottom, -1);
         vLine(pPoseStack, hudLeft + j1 - 1, hudBottom - 60, hudBottom, -1);
 
-        if (minecraft.options.framerateLimit > 0 && minecraft.options.framerateLimit <= 250) {
-            hLine(pPoseStack, hudLeft, hudLeft + j1 - 1, hudBottom - 1 - (int) (1800.0D / (double) minecraft.options.framerateLimit), -16711681);
+        int fpsLimit = minecraft.options.framerateLimit().get();
+        if (fpsLimit > 0 && fpsLimit <= 250) {
+            hLine(pPoseStack, hudLeft, hudLeft + j1 - 1, hudBottom - 1 - (int) (1800.0D / (double) fpsLimit), -16711681);
         }
 
         String minText = msMin + " ms min";

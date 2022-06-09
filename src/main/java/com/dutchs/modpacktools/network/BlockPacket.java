@@ -1,6 +1,5 @@
 package com.dutchs.modpacktools.network;
 
-import com.dutchs.modpacktools.Constants;
 import com.dutchs.modpacktools.ModpackTools;
 import com.dutchs.modpacktools.network.NetworkManager.INetworkPacket;
 import com.dutchs.modpacktools.util.BlockUtil;
@@ -10,7 +9,10 @@ import com.dutchs.modpacktools.util.LevelUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.ChatSender;
+import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -60,7 +62,7 @@ public class BlockPacket implements INetworkPacket {
         contextSupplier.get().enqueueWork(() -> {
             ServerPlayer p = contextSupplier.get().getSender();
             if (p != null) {
-                if(p.hasPermissions( 2)) {
+                if (p.hasPermissions(2)) {
                     BlockPacket blockPacket = (BlockPacket) msg;
                     BlockPos pos = blockPacket.blockPos;
                     boolean inv = blockPacket.inventory;
@@ -70,13 +72,13 @@ public class BlockPacket implements INetworkPacket {
                         BlockEntity blockEntity = level.getBlockEntity(pos);
                         BlockState blockState = level.getBlockState(pos);
 
-                        if(inv) {
+                        if (inv) {
                             List<ItemStack> stacks = new ArrayList<>();
-                            if(blockEntity != null) {
+                            if (blockEntity != null) {
                                 CompoundTag tags = blockEntity.saveWithoutMetadata();
                                 String lootTable = BlockUtil.getLootTable(tags);
-                                if(lootTable != null) {
-                                    p.sendMessage(ComponentUtil.formatKeyValueWithCopy("Evaluated LootTable", lootTable), Constants.MOD_SENDER_UUID);
+                                if (lootTable != null) {
+                                    p.sendSystemMessage(ComponentUtil.formatKeyValueWithCopy("Evaluated LootTable", lootTable));
                                 }
                             }
 
@@ -86,7 +88,8 @@ public class BlockPacket implements INetworkPacket {
                                 ClientInventoryResultPacket resultPacket = new ClientInventoryResultPacket(InventoryPacket.InventoryType.BlockInventory, itemStacks == null ? "" : itemStacks);
                                 ModpackTools.NETWORK.toPlayer(resultPacket, p);
                             } else {
-                                p.sendMessage(new TextComponent("Block (" + BlockUtil.getBlockStateRegisteryName(blockState) + ") at: " + pos.toShortString() + " is not a Container").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                                p.sendSystemMessage(Component.literal("Block (" + BlockUtil.getBlockStateRegisteryName(blockState) + ") at: " + pos.toShortString() + " is not a Container"));
+                                //p.sendMessage(new TextComponent().withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
                             }
                         } else {
                             String type = "";
@@ -98,7 +101,7 @@ public class BlockPacket implements INetworkPacket {
                                     type = "Container";
 
                                 clazz = blockEntity.getClass().getSimpleName();
-                                if(nbt)
+                                if (nbt)
                                     tags = blockEntity.saveWithoutMetadata();
                             }
 
@@ -106,10 +109,12 @@ public class BlockPacket implements INetworkPacket {
                             ModpackTools.NETWORK.toPlayer(result, p);
                         }
                     } else {
-                        p.sendMessage(new TextComponent("Can't fetch data from unloaded chunks").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                        p.sendSystemMessage(Component.literal("Can't fetch data from unloaded chunks"));
+                        //p.sendMessage(new TextComponent().withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
                     }
                 } else {
-                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                    p.sendSystemMessage(Component.literal("You lack permissions to run this command"));
+                    //p.sendMessage(new TextComponent().withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
                 }
             }
         });

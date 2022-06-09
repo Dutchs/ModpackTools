@@ -6,6 +6,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -20,7 +21,7 @@ public class ItemStackUtil {
 
         if (stack != null && (!stack.isEmpty() || includeEmpty)) {
             line = new StringBuilder();
-            line.append(Objects.requireNonNull(stack.getItem().getRegistryName()));
+            line.append(ForgeRegistries.ITEMS.getKey(stack.getItem()).toString());
             if (includeNBT) {
                 CompoundTag nbt = stack.getTag();
                 if (nbt != null && !nbt.isEmpty()) {
@@ -60,7 +61,7 @@ public class ItemStackUtil {
         for (ItemStack stack : input) {
             Item item = stack.getItem();
             if (item != Items.AIR) {
-                String itemName = item.getRegistryName().toString();
+                String itemName = ForgeRegistries.ITEMS.getKey(item).toString();
                 itemCounter.merge(itemName, 1, Integer::sum);
             }
         }

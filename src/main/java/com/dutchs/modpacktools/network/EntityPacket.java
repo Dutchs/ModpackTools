@@ -7,8 +7,8 @@ import com.google.common.collect.Maps;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -65,7 +65,7 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
             ServerPlayer p = contextSupplier.get().getSender();
             if (p != null) {
                 if(!p.hasPermissions( 2)) {
-                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                    p.sendSystemMessage(Component.literal("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT));
                     return;
                 }
 
@@ -98,7 +98,7 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
                 }
 
                 if (names.isEmpty()) {
-                    p.sendMessage(new TextComponent("Invalid EntityType: " + pType).withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                    p.sendSystemMessage(Component.literal("Invalid EntityType: " + pType).withStyle(Constants.ERROR_FORMAT));
                     return;
                 }
 
@@ -106,21 +106,21 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
                 if (server != null) {
                     ServerLevel world = server.getLevel(dim); //TODO: DimensionManager so we can hotload? DimensionManager.getWorld(sender.getServer(), dim, false, false);
                     if (world == null) {
-                        p.sendMessage(new TextComponent("Invalid dimension: " + dim.location()).withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                        p.sendSystemMessage(Component.literal("Invalid dimension: " + dim.location()).withStyle(Constants.ERROR_FORMAT));
                         return;
                     }
 
                     Map<ResourceLocation, MutablePair<Integer, Map<BlockPos, Tuple<Integer, List<String>>>>> list = Maps.newHashMap();
                     world.getEntities().getAll().forEach(e -> {
-                        MutablePair<Integer, Map<BlockPos, Tuple<Integer, List<String>>>> info = list.computeIfAbsent(e.getType().getRegistryName(), k -> MutablePair.of(0, Maps.newHashMap()));
+                        MutablePair<Integer, Map<BlockPos, Tuple<Integer, List<String>>>> info = list.computeIfAbsent(ForgeRegistries.ENTITIES.getKey(e.getType()), k -> MutablePair.of(0, Maps.newHashMap()));
                         info.left++;
                         Tuple<Integer, List<String>> right = info.right.getOrDefault(e.blockPosition(), new Tuple<>(0, new ArrayList<>()));
                         right.setA(right.getA() + 1);
                         if (e instanceof ItemEntity itemEntity) {
-                            ResourceLocation itemID = itemEntity.getItem().getItem().getRegistryName();
+                            ResourceLocation itemID = ForgeRegistries.ITEMS.getKey(itemEntity.getItem().getItem());
                             right.getB().add(itemID != null ? itemID.toString() : "null");
                         } else if (e instanceof FallingBlockEntity blockEntity) {
-                            ResourceLocation blockID = blockEntity.getBlockState().getBlock().getRegistryName();
+                            ResourceLocation blockID = ForgeRegistries.BLOCKS.getKey(blockEntity.getBlockState().getBlock());
                             right.getB().add(blockID != null ? blockID.toString() : "null");
                         }
 
@@ -132,7 +132,7 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
 
                         Pair<Integer, Map<BlockPos, Tuple<Integer, List<String>>>> info = list.get(name);
                         if (info == null) {
-                            p.sendMessage(new TextComponent("Entity of type: " + name + " does not currently exist in: " + dim.location()).withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                            p.sendSystemMessage(Component.literal("Entity of type: " + name + " does not currently exist in: " + dim.location()).withStyle(Constants.ERROR_FORMAT));
                             return;
                         }
 
@@ -144,12 +144,12 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
                                 return b.getValue().getA() - a.getValue().getA();
                         });
 
-                        MutableComponent header = new TextComponent(String.format("Entity: %s Total: %d", name, info.getLeft())).withStyle(Constants.CHAT_FORMAT);
+                        MutableComponent header = Component.literal(String.format("Entity: %s Total: %d", name, info.getLeft())).withStyle(Constants.CHAT_FORMAT);
                         if (limit != -1 && limit < toSort.size()) {
-                            header.append(new TextComponent(" - ").withStyle(Constants.CHAT_FORMAT));
-                            header.append(ComponentUtil.withRunCommand(new TextComponent("Show All").withStyle(Constants.RUN_COMMAND_FORMAT), String.format("/mt entity %s %s -1", pType, dim.location())));
+                            header.append(Component.literal(" - ").withStyle(Constants.CHAT_FORMAT));
+                            header.append(ComponentUtil.withRunCommand(Component.literal("Show All").withStyle(Constants.RUN_COMMAND_FORMAT), String.format("/mt entity %s %s -1", pType, dim.location())));
                         }
-                        p.sendMessage(header, Constants.MOD_SENDER_UUID);
+                        p.sendSystemMessage(header);
 
                         int i = 0;
                         for (Map.Entry<BlockPos, Tuple<Integer, List<String>>> e : toSort) {
@@ -158,11 +158,11 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
                             ResourceKey<Level> senderDim = p.getLevel().dimension();
                             String tpCommand = CommandUtil.createTPCommandBetweenDimensions("@p", senderDim, dim, e.getKey());
 
-                            MutableComponent entry = new TextComponent(String.format(" %d: ", e.getValue().getA()));
-                            entry.append(ComponentUtil.withTeleportCommand(new TextComponent(String.format("%d %d %d", e.getKey().getX(), e.getKey().getY(), e.getKey().getZ())).withStyle(Constants.RUN_COMMAND_FORMAT), tpCommand));
+                            MutableComponent entry = Component.literal(String.format(" %d: ", e.getValue().getA()));
+                            entry.append(ComponentUtil.withTeleportCommand(Component.literal(String.format("%d %d %d", e.getKey().getX(), e.getKey().getY(), e.getKey().getZ())).withStyle(Constants.RUN_COMMAND_FORMAT), tpCommand));
                             if (e.getValue().getB().size() > 0)
-                                entry.append(new TextComponent(String.format(" - %s", String.join(", ", e.getValue().getB()))).withStyle(Constants.CHAT_FORMAT));
-                            p.sendMessage(entry, Constants.MOD_SENDER_UUID);
+                                entry.append(Component.literal(String.format(" - %s", String.join(", ", e.getValue().getB()))).withStyle(Constants.CHAT_FORMAT));
+                            p.sendSystemMessage(entry);
                         }
                     } else {
                         List<Pair<ResourceLocation, Integer>> info = new ArrayList<>();
@@ -181,16 +181,16 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
                         });
 
                         if (info.size() == 0) {
-                            p.sendMessage(new TextComponent("Entity of type: " + pTypePath + " does not currently exist in: " + dim.location()).withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                            p.sendSystemMessage(Component.literal("Entity of type: " + pTypePath + " does not currently exist in: " + dim.location()).withStyle(Constants.ERROR_FORMAT));
                             return;
                         }
 
                         int count = info.stream().mapToInt(Pair::getRight).sum();
-                        p.sendMessage(new TextComponent("Total: " + count), Constants.MOD_SENDER_UUID);
+                        p.sendSystemMessage(Component.literal("Total: " + count));
                         for (Pair<ResourceLocation, Integer> i : info) {
-                            MutableComponent entry = new TextComponent(String.format(" %d: ", i.getValue()));
-                            entry.append(ComponentUtil.withRunCommand(new TextComponent(i.getKey().toString()).withStyle(Constants.RUN_COMMAND_FORMAT), "/mt entity " + i.getKey()));
-                            p.sendMessage(entry, Constants.MOD_SENDER_UUID);
+                            MutableComponent entry = Component.literal(String.format(" %d: ", i.getValue()));
+                            entry.append(ComponentUtil.withRunCommand(Component.literal(i.getKey().toString()).withStyle(Constants.RUN_COMMAND_FORMAT), "/mt entity " + i.getKey()));
+                            p.sendSystemMessage(entry);
                         }
                     }
                 }

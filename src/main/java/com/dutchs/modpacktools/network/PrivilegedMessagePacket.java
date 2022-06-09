@@ -2,7 +2,7 @@ package com.dutchs.modpacktools.network;
 
 import com.dutchs.modpacktools.Constants;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -39,9 +39,9 @@ public class PrivilegedMessagePacket implements NetworkManager.INetworkPacket {
             if (p != null) {
                 if (p.hasPermissions(2)) {
                     PrivilegedMessagePacket privilegedMessagePacket = (PrivilegedMessagePacket) msg;
-                    p.sendMessage(new TextComponent(privilegedMessagePacket.message).withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                    p.sendSystemMessage(Component.literal(privilegedMessagePacket.message).withStyle(Constants.ERROR_FORMAT));
                 } else {
-                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                    p.sendSystemMessage(Component.literal("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT));
                 }
             }
         });

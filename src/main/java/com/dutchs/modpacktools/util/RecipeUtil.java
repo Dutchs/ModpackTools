@@ -11,6 +11,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,7 +118,7 @@ public class RecipeUtil {
         recipeJSON.add("key", keysJSON);
 
         JsonObject resultJSON = new JsonObject();
-        resultJSON.addProperty("item", result.getItem().getRegistryName().toString());
+        resultJSON.addProperty("item", ForgeRegistries.ITEMS.getKey(result.getItem()).toString());
         addNBT(result, resultJSON);
         if (result.getCount() > 1) {
             resultJSON.addProperty("count", result.getCount());
@@ -141,7 +142,8 @@ public class RecipeUtil {
         recipeJSON.add("ingredients", ingredientsJSON);
 
         JsonObject resultJSON = new JsonObject();
-        resultJSON.addProperty("item", result.getItem().getRegistryName().toString());
+
+        resultJSON.addProperty("item", ForgeRegistries.ITEMS.getKey(result.getItem()).toString());
         addNBT(result, resultJSON);
         if (result.getCount() > 1) {
             resultJSON.addProperty("count", result.getCount());
@@ -156,7 +158,7 @@ public class RecipeUtil {
 //    }
 
     public static String formatResult(ItemStack result) {
-        return result.getItem().getRegistryName().toString() + (result.getCount() > 1 ? "(" + result.getCount() + ")" : "");
+        return ForgeRegistries.ITEMS.getKey(result.getItem()).toString() + (result.getCount() > 1 ? "(" + result.getCount() + ")" : "");
     }
 
     public static String formatInput(List<ItemStack> input) {
