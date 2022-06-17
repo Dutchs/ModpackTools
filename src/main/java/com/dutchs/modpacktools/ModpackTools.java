@@ -8,7 +8,6 @@ import com.dutchs.modpacktools.registry.ContainerRegistry;
 import com.dutchs.modpacktools.server.ServerHandler;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -31,14 +30,18 @@ public class ModpackTools {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ConfigHandler.CLIENT_SPEC);
         //ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.COMMON_SPEC);
 
-        ContainerRegistry.init(FMLJavaModLoadingContext.get().getModEventBus());
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(SetupClient::init));
-        MinecraftForge.EVENT_BUS.register(ClientCommands.class);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, KeyInputHandler::onKeyInput);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> clientInit());
 
         MinecraftForge.EVENT_BUS.register(ServerHandler.class);
 
         NETWORK = new NetworkManager(Constants.MODID);
         NETWORK.registerPackets(BlockPacket.class, ClientBlockResultPacket.class, InventoryPacket.class, ClientInventoryResultPacket.class, EntityPacket.class, PrivilegedMessagePacket.class, RecipeMakerOpenGUIPacket.class, RecipeMakerActionPacket.class, ClientRecipeMakerResultPacket.class);
+    }
+
+    private void clientInit() {
+        ContainerRegistry.init(FMLJavaModLoadingContext.get().getModEventBus());
+        FMLJavaModLoadingContext.get().getModEventBus().register(SetupClient.class);
+        MinecraftForge.EVENT_BUS.register(ClientCommands.class);
+        MinecraftForge.EVENT_BUS.register(KeyInputHandler.class);
     }
 }

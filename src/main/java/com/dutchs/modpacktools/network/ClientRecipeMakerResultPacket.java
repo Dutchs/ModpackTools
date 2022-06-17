@@ -1,6 +1,7 @@
 package com.dutchs.modpacktools.network;
 
 import com.dutchs.modpacktools.ConfigHandler;
+import com.dutchs.modpacktools.util.ClipboardUtil;
 import com.dutchs.modpacktools.util.ComponentUtil;
 import com.dutchs.modpacktools.util.PlayerUtil;
 import net.minecraft.client.Minecraft;
@@ -60,8 +61,9 @@ public class ClientRecipeMakerResultPacket implements NetworkManager.INetworkPac
         if (!StringUtil.isNullOrEmpty(msg.recipeJSON)) {
             String newLinesItems = msg.recipeJSON.replace("\n", System.lineSeparator());
 
-            if (ConfigHandler.autoCopyItems)
-                Minecraft.getInstance().keyboardHandler.setClipboard(newLinesItems);
+            if (ConfigHandler.autoCopyItems) {
+                ClipboardUtil.copyToClipboard(newLinesItems);
+            }
 
             PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContentWithCopy("RecipeMaker(" + msg.recipeType + ")", msg.recipeInput + " ->\n  " + msg.recipeOutput, newLinesItems));
         } else {

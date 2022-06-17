@@ -1,6 +1,7 @@
 package com.dutchs.modpacktools.network;
 
 import com.dutchs.modpacktools.ConfigHandler;
+import com.dutchs.modpacktools.util.ClipboardUtil;
 import com.dutchs.modpacktools.util.ComponentUtil;
 import com.dutchs.modpacktools.util.PlayerUtil;
 import net.minecraft.client.Minecraft;
@@ -53,7 +54,7 @@ public class ClientInventoryResultPacket implements NetworkManager.INetworkPacke
             String newLinesItems = msg.inventoryItems.replace("\n", System.lineSeparator());
 
             if(ConfigHandler.autoCopyItems) {
-                Minecraft.getInstance().keyboardHandler.setClipboard(newLinesItems);
+                ClipboardUtil.copyToClipboard(newLinesItems);
             }
             PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContentWithCopy(msg.inventoryType.toString(), msg.inventoryItems, newLinesItems));
         } else {

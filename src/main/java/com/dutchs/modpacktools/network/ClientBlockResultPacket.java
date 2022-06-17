@@ -81,7 +81,6 @@ public class ClientBlockResultPacket implements INetworkPacket {
                 keyValues.add(new Tuple<>("LootTable", lootTable));
             }
         }
-        //Minecraft.GetInstance().keyboardHandler.setClipboard(s);
         PlayerUtil.sendClientMessage(ComponentUtil.formatTitleKeyValueWithCopy("Block (" + msg.blockState + ") at: " + msg.blockPos.toShortString(), keyValues));
     }
 }

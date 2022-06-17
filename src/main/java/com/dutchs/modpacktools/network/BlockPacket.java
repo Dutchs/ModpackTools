@@ -89,7 +89,6 @@ public class BlockPacket implements INetworkPacket {
                                 ModpackTools.NETWORK.toPlayer(resultPacket, p);
                             } else {
                                 p.sendSystemMessage(Component.literal("Block (" + BlockUtil.getBlockStateRegisteryName(blockState) + ") at: " + pos.toShortString() + " is not a Container"));
-                                //p.sendMessage(new TextComponent().withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
                             }
                         } else {
                             String type = "";
@@ -110,11 +109,9 @@ public class BlockPacket implements INetworkPacket {
                         }
                     } else {
                         p.sendSystemMessage(Component.literal("Can't fetch data from unloaded chunks"));
-                        //p.sendMessage(new TextComponent().withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
                     }
                 } else {
                     p.sendSystemMessage(Component.literal("You lack permissions to run this command"));
-                    //p.sendMessage(new TextComponent().withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
                 }
             }
         });
