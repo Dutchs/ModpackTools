@@ -1,7 +1,6 @@
 package com.dutchs.modpacktools.network;
 
 import com.dutchs.modpacktools.Constants;
-import com.dutchs.modpacktools.gui.RecipeMakerMenu;
 import com.dutchs.modpacktools.gui.RecipeMakerMenuProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextComponent;

@@ -19,11 +19,9 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.stats.Stat;
 import net.minecraft.stats.StatType;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -43,7 +41,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ClientCommands {
 
@@ -347,18 +344,19 @@ public class ClientCommands {
         StringBuilder builder = new StringBuilder();
         ResourceLocation minecraftCustom = new ResourceLocation("custom");
         for (StatType<?> e : ForgeRegistries.STAT_TYPES) {
-            if(e.getRegistryName().equals(minecraftCustom)) {
+            if (e.getRegistryName().equals(minecraftCustom)) {
 
                 ArrayList<String> customStats = new ArrayList<>();
-                e.forEach(e2 -> {customStats.add(e2.getName());});
+                e.forEach(e2 -> {
+                    customStats.add(e2.getName());
+                });
                 customStats.sort(Comparator.naturalOrder());
 
                 for (String s : customStats) {
                     builder.append(s).append(System.lineSeparator());
                 }
 
-            }
-             else {
+            } else {
                 builder.append(e.getRegistryName().getNamespace() + "." + e.getRegistryName().getPath() + ":*").append(System.lineSeparator());
             }
 

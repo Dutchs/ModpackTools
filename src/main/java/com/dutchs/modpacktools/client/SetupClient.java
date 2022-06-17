@@ -8,11 +8,13 @@ import com.dutchs.modpacktools.registry.ContainerRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.client.gui.OverlayRegistry;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 public class SetupClient {
 
-    public static void init(FMLClientSetupEvent event) {
+    @SubscribeEvent
+    public static void onClientSetup(FMLClientSetupEvent event) {
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CHAT_PANEL_ELEMENT, "tpshud", TPSOverlay.TPS_HUD);
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CHAT_PANEL_ELEMENT, "fpshud", FPSOverlay.FPS_HUD);
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CHAT_PANEL_ELEMENT, "entityhud", EntityOverlay.ENTITY_HUD);
