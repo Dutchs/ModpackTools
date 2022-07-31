@@ -69,7 +69,7 @@ public class ClientCommands {
                                 //.then(Commands.literal("world_types").executes(ClientCommands::WORLD_TYPESDUMP_COMMAND))
                         )
                         .then(Commands.literal("entity").then(Commands.argument("entitytype", ResourceLocationArgument.id())
-                                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(ForgeRegistries.ENTITIES.getKeys().stream().map(ResourceLocation::toString), builder))
+                                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(ForgeRegistries.ENTITY_TYPES.getKeys().stream().map(ResourceLocation::toString), builder))
                                         .then(Commands.argument("dim", DimensionResourceArgument.dimensionResource())
                                                 .executes(ctx -> ENTITY_Command(ctx, ctx.getArgument("entitytype", ResourceLocation.class), DimensionResourceArgument.getDimensionResource(ctx, "dim"), 10))
                                                 .then(Commands.argument("limit", IntegerArgumentType.integer())
@@ -272,7 +272,7 @@ public class ClientCommands {
 
     private static int ENTITIESDUMP_Command(CommandContext<CommandSourceStack> ctx) {
         StringBuilder builder = new StringBuilder();
-        for (var e : ForgeRegistries.ENTITIES.getKeys()) {
+        for (var e : ForgeRegistries.ENTITY_TYPES.getKeys()) {
             builder.append(e.toString()).append(System.lineSeparator());
         }
         writeDumpFile("entities", builder);
@@ -373,13 +373,13 @@ public class ClientCommands {
 
     private static int MOB_CATEGORIESDUMP_COMMAND(CommandContext<CommandSourceStack> ctx) {
         TreeMap<String, List<String>> cats = new TreeMap<>();
-        for (EntityType<?> e : ForgeRegistries.ENTITIES) {
+        for (EntityType<?> e : ForgeRegistries.ENTITY_TYPES) {
             cats.compute(e.getCategory().getName(), (k, v) -> {
                 if (v == null) {
                     v = new ArrayList<>();
                 }
 
-                v.add(ForgeRegistries.ENTITIES.getKey(e).toString());
+                v.add(ForgeRegistries.ENTITY_TYPES.getKey(e).toString());
                 //v.add(e.getRegistryName().toString());
 
                 return v;

@@ -32,7 +32,7 @@ public class RecipeMakerOpenGUIPacket implements NetworkManager.INetworkPacket {
             ServerPlayer p = contextSupplier.get().getSender();
             if (p != null) {
                 if (p.hasPermissions(2)) {
-                    NetworkHooks.openGui(p, new RecipeMakerMenuProvider(), p.blockPosition());
+                    NetworkHooks.openScreen(p, new RecipeMakerMenuProvider(), p.blockPosition());
                 } else {
                     p.sendSystemMessage(Component.literal("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT));
                 }

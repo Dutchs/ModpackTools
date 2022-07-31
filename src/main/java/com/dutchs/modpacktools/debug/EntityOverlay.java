@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.gui.IIngameOverlay;
+import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -32,7 +32,7 @@ public class EntityOverlay {
     private static int overlayWidth = -1;
     private static int overlayHeight = -1;
 
-    public static final IIngameOverlay ENTITY_HUD = (gui, pPoseStack, partialTicks, width, height) -> {
+    public static final IGuiOverlay ENTITY_HUD = (gui, pPoseStack, partialTicks, width, height) -> {
         if (HUDManager.RENDERENTITY) {
             Minecraft minecraft = Minecraft.getInstance();
             IntegratedServer integratedServer = minecraft.getSingleplayerServer();
@@ -48,8 +48,7 @@ public class EntityOverlay {
                 double d0 = (double) Util.getMillis();
                 if (entityInfo == null || d0 - lastUpdateTime > ConfigHandler.hudEntityDelay) {
                     lastUpdateTime = d0;
-                    Set<ResourceLocation> names = ForgeRegistries.ENTITIES.getKeys();
-
+                    Set<ResourceLocation> names = ForgeRegistries.ENTITY_TYPES.getKeys();
                     LocalPlayer player = minecraft.player;
                     if (player != null) {
                         ResourceKey<Level> dimension = player.getLevel().dimension();
@@ -58,7 +57,7 @@ public class EntityOverlay {
                             dimensionID = dimension.location().toString();
                             Map<ResourceLocation, MutablePair<Integer, Map<ChunkPos, Integer>>> list = Maps.newHashMap();
                             world.getEntities().getAll().forEach(e -> {
-                                MutablePair<Integer, Map<ChunkPos, Integer>> info = list.computeIfAbsent(ForgeRegistries.ENTITIES.getKey(e.getType()), k -> MutablePair.of(0, Maps.newHashMap()));
+                                MutablePair<Integer, Map<ChunkPos, Integer>> info = list.computeIfAbsent(ForgeRegistries.ENTITY_TYPES.getKey(e.getType()), k -> MutablePair.of(0, Maps.newHashMap()));
                                 ChunkPos chunk = new ChunkPos(e.blockPosition());
                                 info.left++;
                                 info.right.put(chunk, info.right.getOrDefault(chunk, 0) + 1);
@@ -90,7 +89,7 @@ public class EntityOverlay {
 
     private static int calculateOverlayWidth(Font font) {
         int result = -1;
-        Set<ResourceLocation> names = ForgeRegistries.ENTITIES.getKeys();
+        Set<ResourceLocation> names = ForgeRegistries.ENTITY_TYPES.getKeys();
         for (ResourceLocation name : names) {
             int width = font.width("1234: " + name.toString());
             if (width > result)

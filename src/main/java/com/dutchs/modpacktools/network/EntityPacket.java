@@ -93,13 +93,13 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
 
                     if (pType != null) { //exact match
                         ResourceLocation finalPType = pType;
-                        names = ForgeRegistries.ENTITIES.getKeys().stream().filter(n -> Objects.equals(n, finalPType)).collect(Collectors.toSet());
+                        names = ForgeRegistries.ENTITY_TYPES.getKeys().stream().filter(n -> Objects.equals(n, finalPType)).collect(Collectors.toSet());
                         if (names.isEmpty()) //path match
                         {
-                            names = ForgeRegistries.ENTITIES.getKeys().stream().filter(n -> Objects.equals(n.getPath(), finalPType.getPath())).collect(Collectors.toSet());
+                            names = ForgeRegistries.ENTITY_TYPES.getKeys().stream().filter(n -> Objects.equals(n.getPath(), finalPType.getPath())).collect(Collectors.toSet());
                         }
                     } else {
-                        names = ForgeRegistries.ENTITIES.getKeys();
+                        names = ForgeRegistries.ENTITY_TYPES.getKeys();
                     }
 
                     if (names.isEmpty()) {
@@ -118,7 +118,7 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
                             } else {
                                 Map<ResourceLocation, MutablePair<Integer, Map<BlockPos, Tuple<Integer, List<String>>>>> list = Maps.newHashMap();
                                 world.getEntities().getAll().forEach(e -> {
-                                    MutablePair<Integer, Map<BlockPos, Tuple<Integer, List<String>>>> info = list.computeIfAbsent(ForgeRegistries.ENTITIES.getKey(e.getType()), k -> MutablePair.of(0, Maps.newHashMap()));
+                                    MutablePair<Integer, Map<BlockPos, Tuple<Integer, List<String>>>> info = list.computeIfAbsent(ForgeRegistries.ENTITY_TYPES.getKey(e.getType()), k -> MutablePair.of(0, Maps.newHashMap()));
                                     info.left++;
                                     Tuple<Integer, List<String>> right = info.right.getOrDefault(e.blockPosition(), new Tuple<>(0, new ArrayList<>()));
                                     right.setA(right.getA() + 1);

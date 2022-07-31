@@ -1,7 +1,7 @@
 package com.dutchs.modpacktools;
 
 import com.dutchs.modpacktools.client.ClientCommands;
-import com.dutchs.modpacktools.client.KeyInputHandler;
+import com.dutchs.modpacktools.client.KeyBinds;
 import com.dutchs.modpacktools.client.SetupClient;
 import com.dutchs.modpacktools.handler.ClientHandler;
 import com.dutchs.modpacktools.network.*;
@@ -9,6 +9,7 @@ import com.dutchs.modpacktools.registry.ContainerRegistry;
 import com.dutchs.modpacktools.server.ServerHandler;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -40,10 +41,12 @@ public class ModpackTools {
     }
 
     private void clientInit() {
-        ContainerRegistry.init(FMLJavaModLoadingContext.get().getModEventBus());
+        IEventBus modbus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        ContainerRegistry.init(modbus);
         FMLJavaModLoadingContext.get().getModEventBus().register(SetupClient.class);
         MinecraftForge.EVENT_BUS.register(ClientCommands.class);
-        MinecraftForge.EVENT_BUS.register(KeyInputHandler.class);
+        modbus.register(KeyBinds.class);
         MinecraftForge.EVENT_BUS.register(ClientHandler.class);
     }
 }

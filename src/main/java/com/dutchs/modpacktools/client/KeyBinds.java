@@ -2,9 +2,12 @@ package com.dutchs.modpacktools.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
-import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class KeyBinds {
     //HUD
@@ -37,17 +40,17 @@ public class KeyBinds {
     public static KeyMapping mapCMDRecipe;
     public static KeyMapping mapCMDEntity;
 
-    public static void init() {
-        //HUD
+    @SubscribeEvent()
+    public static void onRegisterKeyMappingsEvent(RegisterKeyMappingsEvent event) {
         mapHUDEntity = new KeyMapping(KEY_HUD_ENTITY, KeyConflictContext.IN_GAME, KeyModifier.CONTROL, InputConstants.getKey("key.keyboard.e"), KEY_CATEGORIES_HUD);
         mapHUDTPS = new KeyMapping(KEY_HUD_TPS, KeyConflictContext.IN_GAME, KeyModifier.CONTROL, InputConstants.getKey("key.keyboard.t"), KEY_CATEGORIES_HUD);
         mapHUDFPS = new KeyMapping(KEY_HUD_FPS, KeyConflictContext.IN_GAME, KeyModifier.CONTROL, InputConstants.getKey("key.keyboard.f"), KEY_CATEGORIES_HUD);
         mapHUDChunk = new KeyMapping(KEY_HUD_CHUNK, KeyConflictContext.IN_GAME, KeyModifier.NONE, InputConstants.UNKNOWN, KEY_CATEGORIES_HUD);
 
-        ClientRegistry.registerKeyBinding(mapHUDEntity);
-        ClientRegistry.registerKeyBinding(mapHUDTPS);
-        ClientRegistry.registerKeyBinding(mapHUDFPS);
-        ClientRegistry.registerKeyBinding(mapHUDChunk);
+        event.register(mapHUDEntity);
+        event.register(mapHUDTPS);
+        event.register(mapHUDFPS);
+        event.register(mapHUDChunk);
 
         //Commands
         mapCMDHand = new KeyMapping(KEY_CMD_HAND, KeyConflictContext.IN_GAME, KeyModifier.NONE, InputConstants.UNKNOWN, KEY_CATEGORIES_CMD);
@@ -58,12 +61,12 @@ public class KeyBinds {
         mapCMDRecipe = new KeyMapping(KEY_CMD_RECIPE, KeyConflictContext.IN_GAME, KeyModifier.CONTROL, InputConstants.getKey("key.keyboard.r"), KEY_CATEGORIES_CMD);
         mapCMDEntity = new KeyMapping(KEY_CMD_ENTITY, KeyConflictContext.IN_GAME, KeyModifier.NONE, InputConstants.UNKNOWN, KEY_CATEGORIES_CMD);
 
-        ClientRegistry.registerKeyBinding(mapCMDHand);
-        ClientRegistry.registerKeyBinding(mapCMDHot);
-        ClientRegistry.registerKeyBinding(mapCMDInv);
-        ClientRegistry.registerKeyBinding(mapCMDBlockInv);
-        ClientRegistry.registerKeyBinding(mapCMDBlock);
-        ClientRegistry.registerKeyBinding(mapCMDRecipe);
-        ClientRegistry.registerKeyBinding(mapCMDEntity);
+        event.register(mapCMDHand);
+        event.register(mapCMDHot);
+        event.register(mapCMDInv);
+        event.register(mapCMDBlockInv);
+        event.register(mapCMDBlock);
+        event.register(mapCMDRecipe);
+        event.register(mapCMDEntity);
     }
 }
