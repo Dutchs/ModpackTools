@@ -62,7 +62,7 @@ public class InventoryPacket implements INetworkPacket {
                     } else if (type == InventoryType.Hotbar) {
                         itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(0, 9), nbt, false);
                     } else if (type == InventoryType.Inventory) {
-                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(9, 36), nbt, false);
+                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(0, 36), nbt, false);
                     }
 
                     ClientInventoryResultPacket result = new ClientInventoryResultPacket(type, itemStacks == null ? "" : itemStacks);
