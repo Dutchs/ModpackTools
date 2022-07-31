@@ -16,12 +16,4 @@ public class ServerHandler {
         if(event.phase == TickEvent.Phase.END && HUDManager.RENDERTPS)
             GC_MANAGER.Tick();
     }
-
-    @SubscribeEvent
-    public static void PlayerJoin(PlayerEvent.PlayerLoggedInEvent event){
-        //NOTE: clears the hud after loading different world
-       if(Minecraft.getInstance().hasSingleplayerServer()){
-           HUDManager.clearHUD();
-       }
-    }
 }
