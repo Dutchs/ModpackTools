@@ -29,7 +29,7 @@ public class ModpackTools {
 
     public ModpackTools() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ConfigHandler.CLIENT_SPEC);
-        //ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.COMMON_SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.COMMON_SPEC);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::clientInit);
 

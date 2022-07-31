@@ -10,17 +10,27 @@ import org.apache.commons.lang3.tuple.Pair;
 public class ConfigHandler {
     static public final ClientConfig CLIENT_CONFIG;
     static public final ForgeConfigSpec CLIENT_SPEC;
+    static public final CommonConfig COMMON_CONFIG;
+    static public final ForgeConfigSpec COMMON_SPEC;
 
     static {
         final Pair<ClientConfig, ForgeConfigSpec> clientSpecPair = new ForgeConfigSpec.Builder().configure(ClientConfig::new);
         CLIENT_CONFIG = clientSpecPair.getLeft();
         CLIENT_SPEC = clientSpecPair.getRight();
+
+        final Pair<CommonConfig, ForgeConfigSpec> commonSpecPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
+        COMMON_CONFIG = commonSpecPair.getLeft();
+        COMMON_SPEC = commonSpecPair.getRight();
     }
 
     @SubscribeEvent
     public static void onModConfigEvent(final ModConfigEvent configEvent) {
         if (configEvent.getConfig().getSpec() == ConfigHandler.CLIENT_SPEC) {
             bakeClientConfig();
+        }
+
+        if(configEvent.getConfig().getSpec() == ConfigHandler.COMMON_SPEC) {
+            bakeCommonConfig();
         }
     }
 
@@ -29,12 +39,18 @@ public class ConfigHandler {
     public static int chunkRendererRadius;
     public static int hudEntityDelay;
     public static boolean autoCopyItems;
+    //Common
+    public static boolean printDebug;
 
     public static void bakeClientConfig() {
         chunkRendererDelay = CLIENT_CONFIG.chunkRendererDelay.get();
         chunkRendererRadius = CLIENT_CONFIG.chunkRendererRadius.get();
         hudEntityDelay = CLIENT_CONFIG.hudEntityDelay.get();
         autoCopyItems = CLIENT_CONFIG.autoCopyItems.get();
+    }
+
+    public static void bakeCommonConfig() {
+        printDebug = COMMON_CONFIG.printDebug.get();
     }
 
     public static class ClientConfig {
@@ -55,6 +71,17 @@ public class ConfigHandler {
             builder.push("Behavior");
             autoCopyItems = builder.comment("Automatically copy data to clipboard when running commands to list them (mt hand/hot/inv/blockinv/recipemaker)")
                     .define("autoCopyItems", true);
+            builder.pop();
+        }
+    }
+
+    public static class CommonConfig {
+        public ForgeConfigSpec.BooleanValue printDebug;
+
+        public CommonConfig(ForgeConfigSpec.Builder builder) {
+            builder.push("Debug");
+            printDebug = builder.comment("Print debug information to the console")
+                    .define("printDebug", false);
             builder.pop();
         }
     }
