@@ -7,7 +7,7 @@ import java.util.UUID;
 public class Constants {
     public static final String MODID = "modpacktools";
     public static final String MODNAME = "Modpack Tools";
-    public static final UUID MOD_SENDER_UUID = UUID.nameUUIDFromBytes(MODID.getBytes());
+    public static final UUID NIL_UUID = new UUID(0L, 0L);
     public static final ChatFormatting CHAT_FORMAT = ChatFormatting.WHITE;
     public static final ChatFormatting BORDER_FORMAT = ChatFormatting.GOLD;
     public static final ChatFormatting TITLE_FORMAT = ChatFormatting.GRAY;

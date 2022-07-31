@@ -34,7 +34,7 @@ public class RecipeMakerOpenGUIPacket implements NetworkManager.INetworkPacket {
                 if (p.hasPermissions(2)) {
                     NetworkHooks.openGui(p, new RecipeMakerMenuProvider(), p.blockPosition());
                 } else {
-                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.NIL_UUID);
                 }
             }
         });

@@ -68,7 +68,7 @@ public class InventoryPacket implements INetworkPacket {
                     ClientInventoryResultPacket result = new ClientInventoryResultPacket(type, itemStacks == null ? "" : itemStacks);
                     ModpackTools.NETWORK.toPlayer(result, p);
                 } else {
-                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.NIL_UUID);
                 }
             }
         });

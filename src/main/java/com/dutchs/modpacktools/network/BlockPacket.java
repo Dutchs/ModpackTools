@@ -76,7 +76,7 @@ public class BlockPacket implements INetworkPacket {
                                 CompoundTag tags = blockEntity.saveWithoutMetadata();
                                 String lootTable = BlockUtil.getLootTable(tags);
                                 if(lootTable != null) {
-                                    p.sendMessage(ComponentUtil.formatKeyValueWithCopy("Evaluated LootTable", lootTable), Constants.MOD_SENDER_UUID);
+                                    p.sendMessage(ComponentUtil.formatKeyValueWithCopy("Evaluated LootTable", lootTable), Constants.NIL_UUID);
                                 }
                             }
 
@@ -86,7 +86,7 @@ public class BlockPacket implements INetworkPacket {
                                 ClientInventoryResultPacket resultPacket = new ClientInventoryResultPacket(InventoryPacket.InventoryType.BlockInventory, itemStacks == null ? "" : itemStacks);
                                 ModpackTools.NETWORK.toPlayer(resultPacket, p);
                             } else {
-                                p.sendMessage(new TextComponent("Block (" + BlockUtil.getBlockStateRegisteryName(blockState) + ") at: " + pos.toShortString() + " is not a Container").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                                p.sendMessage(new TextComponent("Block (" + BlockUtil.getBlockStateRegisteryName(blockState) + ") at: " + pos.toShortString() + " is not a Container").withStyle(Constants.ERROR_FORMAT), Constants.NIL_UUID);
                             }
                         } else {
                             String type = "";
@@ -106,10 +106,10 @@ public class BlockPacket implements INetworkPacket {
                             ModpackTools.NETWORK.toPlayer(result, p);
                         }
                     } else {
-                        p.sendMessage(new TextComponent("Can't fetch data from unloaded chunks").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                        p.sendMessage(new TextComponent("Can't fetch data from unloaded chunks").withStyle(Constants.ERROR_FORMAT), Constants.NIL_UUID);
                     }
                 } else {
-                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
+                    p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.NIL_UUID);
                 }
             }
         });

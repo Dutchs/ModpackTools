@@ -1,6 +1,7 @@
 package com.dutchs.modpacktools.client;
 
 import com.dutchs.modpacktools.Constants;
+import com.dutchs.modpacktools.ModpackTools;
 import com.dutchs.modpacktools.command.DimensionResourceArgument;
 import com.dutchs.modpacktools.debug.HUDManager;
 import com.dutchs.modpacktools.util.CommandUtil;
@@ -73,16 +74,18 @@ public class ClientCommands {
                                         .then(Commands.literal("mob_categories").executes(ClientCommands::MOB_CATEGORIESDUMP_COMMAND))
                                 //.then(Commands.literal("world_types").executes(ClientCommands::WORLD_TYPESDUMP_COMMAND))
                         )
-                        .then(Commands.literal("entity").then(Commands.argument("entitytype", ResourceLocationArgument.id())
+                        .then(Commands.literal("entity")
+                                .executes(ctx -> ENTITY_Command(ctx, null, null, 10))
+                                .then(Commands.argument("entitytype", ResourceLocationArgument.id())
                                         .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(ForgeRegistries.ENTITIES.getKeys().stream().map(ResourceLocation::toString), builder))
+                                        .executes(ctx -> ENTITY_Command(ctx, ctx.getArgument("entitytype", ResourceLocation.class), null, 10))
                                         .then(Commands.argument("dim", DimensionResourceArgument.dimensionResource())
                                                 .executes(ctx -> ENTITY_Command(ctx, ctx.getArgument("entitytype", ResourceLocation.class), DimensionResourceArgument.getDimensionResource(ctx, "dim"), 10))
                                                 .then(Commands.argument("limit", IntegerArgumentType.integer())
                                                         .executes(ctx -> ENTITY_Command(ctx, ctx.getArgument("entitytype", ResourceLocation.class), DimensionResourceArgument.getDimensionResource(ctx, "dim"), IntegerArgumentType.getInteger(ctx, "limit")))
                                                 )
                                         )
-                                        .executes(ctx -> ENTITY_Command(ctx, ctx.getArgument("entitytype", ResourceLocation.class), null, 10)))
-                                .executes(ctx -> ENTITY_Command(ctx, null, null, 10))
+                                )
                         )
                         .then(Commands.literal("block").executes(ClientCommands::BLOCK_Command)
                                 .then(Commands.literal("noNBT").executes((ctx) -> BLOCK_Command(ctx, false)))
