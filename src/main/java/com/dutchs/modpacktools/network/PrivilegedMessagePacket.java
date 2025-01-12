@@ -4,7 +4,7 @@ import com.dutchs.modpacktools.Constants;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -33,9 +33,9 @@ public class PrivilegedMessagePacket implements NetworkManager.INetworkPacket {
     }
 
     @Override
-    public void handle(Object msg, Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().enqueueWork(() -> {
-            ServerPlayer p = contextSupplier.get().getSender();
+    public void handle(Object msg, CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> {
+            ServerPlayer p = context.getSender();
             if (p != null) {
                 if (p.hasPermissions(2)) {
                     PrivilegedMessagePacket privilegedMessagePacket = (PrivilegedMessagePacket) msg;
@@ -45,6 +45,6 @@ public class PrivilegedMessagePacket implements NetworkManager.INetworkPacket {
                 }
             }
         });
-        contextSupplier.get().setPacketHandled(true);
+        context.setPacketHandled(true);
     }
 }

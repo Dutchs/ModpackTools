@@ -5,10 +5,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
+
+import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraftforge.network.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
@@ -21,7 +20,7 @@ public class NetworkManager {
     private int packetIndex = 0;
 
     public NetworkManager(String channelName) {
-        channel = NetworkRegistry.ChannelBuilder.named(new ResourceLocation(channelName)).clientAcceptedVersions(a -> true).serverAcceptedVersions(a -> true).networkProtocolVersion(() -> "1.0.0").simpleChannel();
+        channel = ChannelBuilder.named(ResourceLocation.withDefaultNamespace(channelName)).clientAcceptedVersions((status, i) ->true).serverAcceptedVersions((status, i)->true).networkProtocolVersion(1).simpleChannel();
         packets = new HashSet<>();
     }
 
@@ -30,7 +29,8 @@ public class NetworkManager {
         for (Class<? extends INetworkPacket> packetClass : handledPacketClasses) {
             try {
                 INetworkPacket instance = packetClass.getDeclaredConstructor().newInstance();
-                channel.registerMessage(packetIndex++, packetClass, instance::encode, instance::decode, instance::handle);
+                channel.messageBuilder(packetClass).decoder(instance::decode).encoder(instance::encode).consumerNetworkThread(instance::handle).add();
+                //channel.registerMessage(packetIndex++, packetClass, instance::encode, instance::decode, instance::handle);
                 packets.add(packetClass);
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 e.printStackTrace();
@@ -40,27 +40,28 @@ public class NetworkManager {
 
     public void toServer(INetworkPacket packet) {
         validatePacketClass(packet.getClass());
-        channel.sendToServer(packet);
+//        channel.sendToServer(packet);
+        channel.send(packet, PacketDistributor.SERVER.noArg());
     }
 
     public void toPlayer(INetworkPacket packet, ServerPlayer player) {
         validatePacketClass(packet.getClass());
-        channel.send(PacketDistributor.PLAYER.with(() -> player), packet);
+        channel.send(packet, PacketDistributor.PLAYER.with(player));
     }
 
     public void toAllPlayers(INetworkPacket packet) {
         validatePacketClass(packet.getClass());
-        channel.send(PacketDistributor.ALL.noArg(), packet);
+        channel.send(packet, PacketDistributor.ALL.noArg());
     }
 
     public void toAllAround(INetworkPacket packet, PacketDistributor.TargetPoint tp) {
         validatePacketClass(packet.getClass());
-        channel.send(PacketDistributor.NEAR.with(() -> tp), packet);
+        channel.send(packet, PacketDistributor.NEAR.with(tp));
     }
 
     public void toAllInDimension(INetworkPacket packet, ResourceKey<Level> dimension) {
         validatePacketClass(packet.getClass());
-        channel.send(PacketDistributor.DIMENSION.with(() -> dimension), packet);
+        channel.send(packet, PacketDistributor.DIMENSION.with(dimension));
     }
 
     private void validatePacketClass(Class<? extends INetworkPacket> clazz) {
@@ -74,8 +75,7 @@ public class NetworkManager {
         void encode(Object msg, FriendlyByteBuf packetBuffer);
 
         <MESSAGE> MESSAGE decode(FriendlyByteBuf packetBuffer);
-
-        void handle(Object msg, Supplier<NetworkEvent.Context> contextSupplier);
+        void handle(Object msg, CustomPayloadEvent.Context context);
     }
 
 }

@@ -1,12 +1,11 @@
 package com.dutchs.modpacktools.util;
 
 import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import com.google.gson.*;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -16,28 +15,29 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class RecipeUtil {
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().create();
 
     private static void addNBT(ItemStack result, JsonObject resultJSON) {
         StringBuilder sb = new StringBuilder();
-        CompoundTag nbt = result.getTag();
-        if (nbt != null) {
-            if (nbt.contains("Damage", 99)) {
-                int dmg = nbt.getInt("Damage");
-                if (dmg == 0) {
-                    nbt.remove("Damage");
-                }
-            }
-            if (!nbt.isEmpty()) {
-                List<Tag> printNBT = List.of(nbt);
-                for (Tag element : printNBT) {
-                    sb.append(element.toString());
-                }
-                resultJSON.addProperty("nbt", sb.toString());
-            }
-        }
+        //CompoundTag nbt = result.getTag();
+//        if (nbt != null) {
+//            if (nbt.contains("Damage", 99)) {
+//                int dmg = nbt.getInt("Damage");
+//                if (dmg == 0) {
+//                    nbt.remove("Damage");
+//                }
+//            }
+//            if (!nbt.isEmpty()) {
+//                List<Tag> printNBT = List.of(nbt);
+//                for (Tag element : printNBT) {
+//                    sb.append(element.toString());
+//                }
+//                resultJSON.addProperty("nbt", sb.toString());
+//            }
+//        }
     }
 
     private static List<String> createPattern(Map<Item, Character> reverseKeys, List<ItemStack> recipe) {
@@ -91,7 +91,34 @@ public class RecipeUtil {
         }
     }
 
-    public static String createShapedJSON(ItemStack result, List<ItemStack> recipe) {
+    public static JsonElement toJson(Ingredient ingredient) {
+        ItemStack[] items = ingredient.getItems();
+        if (items.length == 1) {
+            return serializeItem(items[0].getItem());
+        } else {
+            JsonArray jsonarray = new JsonArray();
+
+            for(ItemStack ingredient$value : items) {
+                jsonarray.add(serializeItem(ingredient$value.getItem()));
+            }
+
+            return jsonarray;
+        }
+    }
+
+    public static JsonObject serializeItem(Item item) {
+        JsonObject jsonobject = new JsonObject();
+        jsonobject.addProperty("item", BuiltInRegistries.ITEM.getKey(item).toString());
+        return jsonobject;
+    }
+
+    public static JsonObject serializeItemTag(TagKey<Item> tag) {
+        JsonObject jsonobject = new JsonObject();
+        jsonobject.addProperty("tag", tag.location().toString());
+        return jsonobject;
+    }
+
+    public static String createShapedJSON(ItemStack result, List<ItemStack> recipe, int[] inputIndexer) {
         JsonObject recipeJSON = new JsonObject();
         recipeJSON.addProperty("type", "minecraft:crafting_shaped");
 
@@ -103,8 +130,14 @@ public class RecipeUtil {
             keys.put(Character.forDigit(i + 1, 10), filteredRecipe.get(i));
             reverseKeys.put(filteredRecipe.get(i), Character.forDigit(i + 1, 10));
         }
+        int i = 0;
         for (Map.Entry<Character, Item> entry : keys.entrySet()) {
-            keysJSON.add(String.valueOf(entry.getKey()), Ingredient.of(entry.getValue()).toJson());
+            if(inputIndexer[i] == -1){
+                keysJSON.add(String.valueOf(entry.getKey()), serializeItem(entry.getValue()));
+            } else {
+                keysJSON.add(String.valueOf(entry.getKey()), serializeItemTag(ForgeRegistries.ITEMS.getHolder(entry.getValue()).get().tags().skip(inputIndexer[i]).findFirst().orElse(TagKey.create(Registries.ITEM, ResourceLocation.withDefaultNamespace("invalid")))));
+            }
+            i++;
         }
 
         reverseKeys.put(Items.AIR, ' ');
@@ -118,7 +151,7 @@ public class RecipeUtil {
         recipeJSON.add("key", keysJSON);
 
         JsonObject resultJSON = new JsonObject();
-        resultJSON.addProperty("item", ForgeRegistries.ITEMS.getKey(result.getItem()).toString());
+        resultJSON.addProperty("item", Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(result.getItem())).toString());
         addNBT(result, resultJSON);
         if (result.getCount() > 1) {
             resultJSON.addProperty("count", result.getCount());
@@ -128,22 +161,28 @@ public class RecipeUtil {
         return GSON.toJson(recipeJSON);
     }
 
-    public static String createShapelessJSON(ItemStack result, List<ItemStack> recipe) {
+    public static String createShapelessJSON(ItemStack result, List<ItemStack> recipe, int[] inputIndexer) {
         JsonObject recipeJSON = new JsonObject();
         recipeJSON.addProperty("type", "minecraft:crafting_shapeless");
 
         JsonArray ingredientsJSON = new JsonArray();
+        int i = 0;
         for (ItemStack recipeStack : recipe) {
             Item recipeItem = recipeStack.getItem();
             if (recipeItem != Items.AIR) {
-                ingredientsJSON.add(Ingredient.of(recipeStack).toJson());
+                if(inputIndexer[i] == -1){
+                    ingredientsJSON.add(serializeItem(recipeItem));
+                } else {
+
+                    ingredientsJSON.add(serializeItemTag(recipeStack.getItemHolder().getTagKeys().skip(inputIndexer[i]).findFirst().orElse(TagKey.create(Registries.ITEM, ResourceLocation.withDefaultNamespace("invalid")))));
+                }
             }
+            i++;
         }
         recipeJSON.add("ingredients", ingredientsJSON);
 
         JsonObject resultJSON = new JsonObject();
-
-        resultJSON.addProperty("item", ForgeRegistries.ITEMS.getKey(result.getItem()).toString());
+        resultJSON.addProperty("item", Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(result.getItem())).toString());
         addNBT(result, resultJSON);
         if (result.getCount() > 1) {
             resultJSON.addProperty("count", result.getCount());
@@ -153,16 +192,12 @@ public class RecipeUtil {
         return GSON.toJson(recipeJSON);
     }
 
-//    private static String formatShapedInput(List<ItemStack> input){
-//        return String.join(", ", input.stream().map(i -> i.getItem().getRegistryName().toString()).toList());
-//    }
-
     public static String formatResult(ItemStack result) {
-        return ForgeRegistries.ITEMS.getKey(result.getItem()).toString() + (result.getCount() > 1 ? "(" + result.getCount() + ")" : "");
+        return ForgeRegistries.ITEMS.getKey(result.getItem()) + (result.getCount() > 1 ? "(" + result.getCount() + ")" : "");
     }
 
-    public static String formatInput(List<ItemStack> input) {
-        Map<String, Integer> itemCounter = ItemStackUtil.ItemStackCounter(input);
+    public static String formatInput(List<ItemStack> input, int[] inputIndexer) {
+        Map<String, Integer> itemCounter = ItemStackUtil.ItemStackCounter(input, inputIndexer);
 
         List<String> countedInputs = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : itemCounter.entrySet()) {
@@ -171,4 +206,80 @@ public class RecipeUtil {
 
         return String.join(", ", countedInputs);
     }
+
+//    public static String createShapedJSON(ItemStack result, List<ItemStack> recipe) {
+//        JsonObject recipeJSON = new JsonObject();
+//        recipeJSON.addProperty("type", "minecraft:crafting_shaped");
+//
+//        JsonObject keysJSON = new JsonObject();
+//        Map<Character, Item> keys = Maps.newLinkedHashMap();
+//        Map<Item, Character> reverseKeys = Maps.newLinkedHashMap();
+//        List<Item> filteredRecipe = recipe.stream().map(ItemStack::getItem).filter(item -> item != Items.AIR).distinct().toList();
+//        for (int i = 0; i < filteredRecipe.size(); i++) {
+//            keys.put(Character.forDigit(i + 1, 10), filteredRecipe.get(i));
+//            reverseKeys.put(filteredRecipe.get(i), Character.forDigit(i + 1, 10));
+//        }
+//        for (Map.Entry<Character, Item> entry : keys.entrySet()) {
+//            keysJSON.add(String.valueOf(entry.getKey()), toJson(Ingredient.of(entry.getValue())));
+//        }
+//
+//        reverseKeys.put(Items.AIR, ' ');
+//        List<String> pattern = createPattern(reverseKeys, recipe);
+//        JsonArray patternJSON = new JsonArray();
+//        for (String s : pattern) {
+//            patternJSON.add(s);
+//        }
+//
+//        recipeJSON.add("pattern", patternJSON);
+//        recipeJSON.add("key", keysJSON);
+//
+//        JsonObject resultJSON = new JsonObject();
+//        resultJSON.addProperty("item", Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(result.getItem())).toString());
+//        addNBT(result, resultJSON);
+//        if (result.getCount() > 1) {
+//            resultJSON.addProperty("count", result.getCount());
+//        }
+//        recipeJSON.add("result", resultJSON);
+//
+//        return GSON.toJson(recipeJSON);
+//    }
+//
+//    public static String createShapelessJSON(ItemStack result, List<ItemStack> recipe) {
+//        JsonObject recipeJSON = new JsonObject();
+//        recipeJSON.addProperty("type", "minecraft:crafting_shapeless");
+//
+//        JsonArray ingredientsJSON = new JsonArray();
+//        for (ItemStack recipeStack : recipe) {
+//            Item recipeItem = recipeStack.getItem();
+//            if (recipeItem != Items.AIR) {
+//                ingredientsJSON.add(toJson(Ingredient.of(recipeStack)));
+//            }
+//        }
+//        recipeJSON.add("ingredients", ingredientsJSON);
+//
+//        JsonObject resultJSON = new JsonObject();
+//        resultJSON.addProperty("item", Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(result.getItem())).toString());
+//        //addNBT(result, resultJSON);
+//        if (result.getCount() > 1) {
+//            resultJSON.addProperty("count", result.getCount());
+//        }
+//        recipeJSON.add("result", resultJSON);
+//
+//        return GSON.toJson(recipeJSON);
+//    }
+//
+//    public static String formatResult(ItemStack result) {
+//        return ForgeRegistries.ITEMS.getKey(result.getItem()) + (result.getCount() > 1 ? "(" + result.getCount() + ")" : "");
+//    }
+//
+//    public static String formatInput(List<ItemStack> input) {
+//        Map<String, Integer> itemCounter = ItemStackUtil.ItemStackCounter(input);
+//
+//        List<String> countedInputs = new ArrayList<>();
+//        for (Map.Entry<String, Integer> entry : itemCounter.entrySet()) {
+//            countedInputs.add(entry.getKey() + (entry.getValue() > 1 ? "(" + entry.getValue() + ")" : ""));
+//        }
+//
+//        return String.join(", ", countedInputs);
+//    }
 }

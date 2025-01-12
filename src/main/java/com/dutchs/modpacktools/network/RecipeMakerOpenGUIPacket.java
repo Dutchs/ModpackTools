@@ -5,8 +5,9 @@ import com.dutchs.modpacktools.gui.RecipeMakerMenuProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.event.network.CustomPayloadEvent;
+//import net.minecraftforge.network.NetworkEvent;
+//import net.minecraftforge.network.NetworkHooks;
 
 import java.util.function.Supplier;
 
@@ -27,17 +28,18 @@ public class RecipeMakerOpenGUIPacket implements NetworkManager.INetworkPacket {
     }
 
     @Override
-    public void handle(Object msg, Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().enqueueWork(() -> {
-            ServerPlayer p = contextSupplier.get().getSender();
+    public void handle(Object msg, CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> {
+            ServerPlayer p = context.getSender();
             if (p != null) {
                 if (p.hasPermissions(2)) {
-                    NetworkHooks.openScreen(p, new RecipeMakerMenuProvider(), p.blockPosition());
+                    //NetworkHooks.openScreen(p, new RecipeMakerMenuProvider(), p.blockPosition());
+                    p.openMenu(new RecipeMakerMenuProvider(), p.blockPosition());
                 } else {
                     p.sendSystemMessage(Component.literal("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT));
                 }
             }
         });
-        contextSupplier.get().setPacketHandled(true);
+        context.setPacketHandled(true);
     }
 }

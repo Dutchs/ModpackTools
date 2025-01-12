@@ -1,7 +1,6 @@
 package com.dutchs.modpacktools.gui;
 
 import com.dutchs.modpacktools.registry.ContainerRegistry;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -45,12 +44,27 @@ public class RecipeMakerMenu extends AbstractContainerMenu {
         for (int l = 0; l < 9; ++l) {
             this.addSlot(new Slot(inventory, l, 8 + l * 18, 142));
         }
-
     }
 
     public void clearCraftingContent() {
         this.craftSlots.clearContent();
         this.resultSlots.clearContent();
+    }
+
+    public boolean craftSlotsContainSlot(Slot slot) {
+        return this.slots.subList(CRAFT_SLOT_START, CRAFT_SLOT_END).contains(slot);
+    }
+
+    public int getIndexerForCraftSlot(Slot slot){
+        return this.craftSlots.getIndexerForSlot(slot.index - CRAFT_SLOT_START);
+    }
+
+    public void setIndexerForCraftSlot(Slot slot, int newValue){
+        this.craftSlots.setIndexerForSlot(slot.index - CRAFT_SLOT_START, newValue);
+    }
+
+    public void setIndexerForAllMatchingCraftSlots(Slot slot, int newValue) {
+        this.craftSlots.setIndexerForAllMatchingCraftSlots(slot.index - CRAFT_SLOT_START, newValue);
     }
 
     /**
@@ -59,7 +73,7 @@ public class RecipeMakerMenu extends AbstractContainerMenu {
     @Override
     public void removed(@NotNull Player pPlayer) {
         super.removed(pPlayer);
-        if (!pPlayer.level.isClientSide) {
+        if (!pPlayer.level().isClientSide) {
             if (pPlayer instanceof ServerPlayer serverPlayer) {
                 if (!serverPlayer.isAlive() || serverPlayer.hasDisconnected()) {
                     for (int j = 0; j < craftSlots.getContainerSize(); ++j) {
@@ -98,7 +112,6 @@ public class RecipeMakerMenu extends AbstractContainerMenu {
                 if (!this.moveItemStackTo(itemstack1, 10, 46, false)) {
                     return ItemStack.EMPTY;
                 }
-                //slot.onQuickCraft(itemstack1, itemstack);
             } else if (pIndex >= INV_SLOT_START && pIndex < USE_ROW_SLOT_END) {
                 if (!this.moveItemStackTo(itemstack1, RESULT_SLOT, 10, false)) {
                     if (pIndex < 37) {
@@ -152,6 +165,14 @@ public class RecipeMakerMenu extends AbstractContainerMenu {
         List<ItemStack> result = new ArrayList<>();
         for (int i = CRAFT_SLOT_START; i < CRAFT_SLOT_END; i++) {
             result.add(slots.get(i).getItem());
+        }
+        return result;
+    }
+
+    public List<Integer> getInputIndexers() {
+        List<Integer> result = new ArrayList<>();
+        for (int i = CRAFT_SLOT_START; i < CRAFT_SLOT_END; i++) {
+            result.add(getIndexerForCraftSlot(slots.get(i)));
         }
         return result;
     }

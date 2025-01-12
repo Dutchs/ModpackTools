@@ -1,5 +1,6 @@
 package com.dutchs.modpacktools.network;
 
+import com.dutchs.modpacktools.Constants;
 import com.dutchs.modpacktools.ModpackTools;
 import com.dutchs.modpacktools.network.NetworkManager.INetworkPacket;
 import com.dutchs.modpacktools.util.BlockUtil;
@@ -9,18 +10,22 @@ import com.dutchs.modpacktools.util.LevelUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.ChatSender;
-import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+//import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import oshi.software.os.unix.freebsd.FreeBsdFileSystem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +35,18 @@ public class BlockPacket implements INetworkPacket {
     private BlockPos blockPos;
     private boolean inventory;
     private boolean includeNBT;
+    private boolean removeInventory;
+    private boolean asJSON;
 
     public BlockPacket() {
     }
 
-    public BlockPacket(@NotNull BlockPos b, boolean inv, boolean nbt) {
+    public BlockPacket(@NotNull BlockPos b, boolean inv, boolean nbt, boolean remove, boolean json) {
         blockPos = b;
         inventory = inv;
         includeNBT = nbt;
+        removeInventory = remove;
+        asJSON = json;
     }
 
     @Override
@@ -46,6 +55,8 @@ public class BlockPacket implements INetworkPacket {
         packetBuffer.writeBlockPos(blockPacket.blockPos);
         packetBuffer.writeBoolean(blockPacket.inventory);
         packetBuffer.writeBoolean(blockPacket.includeNBT);
+        packetBuffer.writeBoolean(blockPacket.removeInventory);
+        packetBuffer.writeBoolean(blockPacket.asJSON);
     }
 
     @Override
@@ -54,15 +65,17 @@ public class BlockPacket implements INetworkPacket {
         result.blockPos = packetBuffer.readBlockPos();
         result.inventory = packetBuffer.readBoolean();
         result.includeNBT = packetBuffer.readBoolean();
+        result.removeInventory = packetBuffer.readBoolean();
+        result.asJSON = packetBuffer.readBoolean();
         return (MESSAGE) result;
     }
 
     @Override
-    public void handle(Object msg, Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().enqueueWork(() -> {
-            ServerPlayer p = contextSupplier.get().getSender();
+    public void handle(Object msg, CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> {
+            ServerPlayer p = context.getSender();
             if (p != null) {
-                if (p.hasPermissions(2)) {
+                if(p.hasPermissions( 2)) {
                     BlockPacket blockPacket = (BlockPacket) msg;
                     BlockPos pos = blockPacket.blockPos;
                     boolean inv = blockPacket.inventory;
@@ -72,26 +85,30 @@ public class BlockPacket implements INetworkPacket {
                         BlockEntity blockEntity = level.getBlockEntity(pos);
                         BlockState blockState = level.getBlockState(pos);
 
-                        if (inv) {
-                            List<ItemStack> stacks = new ArrayList<>();
-                            if (blockEntity != null) {
-                                CompoundTag tags = blockEntity.saveWithoutMetadata();
-                                String lootTable = BlockUtil.getLootTable(tags);
-                                if (lootTable != null) {
-                                    p.sendSystemMessage(ComponentUtil.formatKeyValueWithCopy("Evaluated LootTable", lootTable));
-                                }
+                        if(inv) {
+                            if(blockEntity != null) {
+//                                CompoundTag tags = blockEntity.saveWithoutMetadata();
+//                                String lootTable = BlockUtil.getLootTable(tags);
+//                                if(lootTable != null) {
+//                                    p.sendSystemMessage(ComponentUtil.formatKeyValueWithCopy("Evaluated LootTable", lootTable));
+//                                }
                             }
 
+                            List<ItemStack> stacks = new ArrayList<>();
                             int slots = BlockUtil.getContainerContents(blockEntity, stacks);
                             if (slots > 0) {
-                                String itemStacks = ItemStackUtil.ItemStackPrinter(stacks, nbt, false);
+                                String itemStacks = ItemStackUtil.ItemStackPrinter(stacks, nbt, false, blockPacket.asJSON);
                                 ClientInventoryResultPacket resultPacket = new ClientInventoryResultPacket(InventoryPacket.InventoryType.BlockInventory, itemStacks == null ? "" : itemStacks);
                                 ModpackTools.NETWORK.toPlayer(resultPacket, p);
+                                if(blockPacket.removeInventory) {
+                                    BlockUtil.clearContainerContents(blockEntity);
+                                }
                             } else {
-                                p.sendSystemMessage(Component.literal("Block (" + BlockUtil.getBlockStateRegisteryName(blockState) + ") at: " + pos.toShortString() + " is not a Container"));
+                                p.sendSystemMessage(Component.literal("Block (" + BlockUtil.getBlockStateRegisteryName(blockState) + ") at: " + pos.toShortString() + " is not a Container").withStyle(Constants.ERROR_FORMAT));
                             }
                         } else {
                             String type = "";
+                            String blockEntityType = "";
                             String clazz = "";
                             CompoundTag tags = new CompoundTag();
 
@@ -99,22 +116,28 @@ public class BlockPacket implements INetworkPacket {
                                 if (blockEntity instanceof Container)
                                     type = "Container";
 
+                                ResourceLocation typesKey = ForgeRegistries.BLOCK_ENTITY_TYPES.getKey(blockEntity.getType());
+                                if(typesKey != null) {
+                                    blockEntityType = typesKey.toString();
+                                }
+
                                 clazz = blockEntity.getClass().getSimpleName();
-                                if (nbt)
-                                    tags = blockEntity.saveWithoutMetadata();
+
+//                                if(nbt)
+//                                    tags = blockEntity.saveWithoutMetadata();
                             }
 
-                            ClientBlockResultPacket result = new ClientBlockResultPacket(BlockUtil.getBlockStateRegisteryName(blockState).toString(), pos, type, clazz, tags);
+                            ClientBlockResultPacket result = new ClientBlockResultPacket(BlockUtil.getBlockStateRegisteryName(blockState).toString(), pos, type, blockEntityType, clazz, tags);
                             ModpackTools.NETWORK.toPlayer(result, p);
                         }
                     } else {
-                        p.sendSystemMessage(Component.literal("Can't fetch data from unloaded chunks"));
+                        p.sendSystemMessage(Component.literal("Can't fetch data from unloaded chunks").withStyle(Constants.ERROR_FORMAT));
                     }
                 } else {
-                    p.sendSystemMessage(Component.literal("You lack permissions to run this command"));
+                    p.sendSystemMessage(Component.literal("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT));
                 }
             }
         });
-        contextSupplier.get().setPacketHandled(true);
+        context.setPacketHandled(true);
     }
 }

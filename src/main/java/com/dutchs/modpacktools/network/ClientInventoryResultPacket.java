@@ -4,12 +4,11 @@ import com.dutchs.modpacktools.ConfigHandler;
 import com.dutchs.modpacktools.util.ClipboardUtil;
 import com.dutchs.modpacktools.util.ComponentUtil;
 import com.dutchs.modpacktools.util.PlayerUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.StringUtil;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -42,20 +41,21 @@ public class ClientInventoryResultPacket implements NetworkManager.INetworkPacke
     }
 
     @Override
-    public void handle(Object msg, Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().enqueueWork(() -> {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> handleClient((ClientInventoryResultPacket) msg, contextSupplier));
+    public void handle(Object msg, CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> {
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> handleClient((ClientInventoryResultPacket) msg, context));
         });
-        contextSupplier.get().setPacketHandled(true);
+        context.setPacketHandled(true);
     }
 
-    private void handleClient(ClientInventoryResultPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
+    private void handleClient(ClientInventoryResultPacket msg, CustomPayloadEvent.Context context) {
         if (!StringUtil.isNullOrEmpty(msg.inventoryItems)) {
             String newLinesItems = msg.inventoryItems.replace("\n", System.lineSeparator());
 
-            if(ConfigHandler.autoCopyItems) {
+            if (ConfigHandler.autoCopyItems) {
                 ClipboardUtil.copyToClipboard(newLinesItems);
             }
+
             PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContentWithCopy(msg.inventoryType.toString(), msg.inventoryItems, newLinesItems));
         } else {
             PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContent(msg.inventoryType.toString(), "Nothing to print"));

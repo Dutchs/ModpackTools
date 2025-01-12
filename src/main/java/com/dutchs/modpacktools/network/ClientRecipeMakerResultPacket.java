@@ -4,12 +4,11 @@ import com.dutchs.modpacktools.ConfigHandler;
 import com.dutchs.modpacktools.util.ClipboardUtil;
 import com.dutchs.modpacktools.util.ComponentUtil;
 import com.dutchs.modpacktools.util.PlayerUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.StringUtil;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -50,14 +49,14 @@ public class ClientRecipeMakerResultPacket implements NetworkManager.INetworkPac
     }
 
     @Override
-    public void handle(Object msg, Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().enqueueWork(() -> {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> handleClient((ClientRecipeMakerResultPacket) msg, contextSupplier));
+    public void handle(Object msg, CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> {
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> handleClient((ClientRecipeMakerResultPacket) msg, context));
         });
-        contextSupplier.get().setPacketHandled(true);
+        context.setPacketHandled(true);
     }
 
-    private void handleClient(ClientRecipeMakerResultPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
+    private void handleClient(ClientRecipeMakerResultPacket msg, CustomPayloadEvent.Context context) {
         if (!StringUtil.isNullOrEmpty(msg.recipeJSON)) {
             String newLinesItems = msg.recipeJSON.replace("\n", System.lineSeparator());
 

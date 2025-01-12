@@ -7,7 +7,7 @@ import com.dutchs.modpacktools.util.ItemStackUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -47,9 +47,9 @@ public class InventoryPacket implements INetworkPacket {
     }
 
     @Override
-    public void handle(Object msg, Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().enqueueWork(() -> {
-            ServerPlayer p = contextSupplier.get().getSender();
+    public void handle(Object msg, CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> {
+            ServerPlayer p = context.getSender();
             if (p != null) {
                 if (p.hasPermissions(2)) {
                     InventoryPacket inventoryPacket = (InventoryPacket) msg;
@@ -58,11 +58,11 @@ public class InventoryPacket implements INetworkPacket {
 
                     String itemStacks = null;
                     if (type == InventoryType.Hand) {
-                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getMainHandItem(), nbt, false);
+                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getMainHandItem(), nbt, false, false);
                     } else if (type == InventoryType.Hotbar) {
-                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(0, 9), nbt, false);
+                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(0, 9), nbt, false, false);
                     } else if (type == InventoryType.Inventory) {
-                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(0, 36), nbt, false);
+                        itemStacks = ItemStackUtil.ItemStackPrinter(p.getInventory().items.subList(9, 36), nbt, false, false);
                     }
 
                     ClientInventoryResultPacket result = new ClientInventoryResultPacket(type, itemStacks == null ? "" : itemStacks);
@@ -72,6 +72,6 @@ public class InventoryPacket implements INetworkPacket {
                 }
             }
         });
-        contextSupplier.get().setPacketHandled(true);
+        context.setPacketHandled(true);
     }
 }

@@ -6,6 +6,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class FileUtil {
     public static String getDumpFileName(String name) {
@@ -34,5 +37,15 @@ public class FileUtil {
             e.printStackTrace();
         }
         return success;
+    }
+
+    public static File getOrCreateDirectory(File root, String subDir) {
+        File result = null;
+        try {
+            Path path = Paths.get( root.getAbsolutePath() + File.separator + subDir);
+            Files.createDirectories(path);
+            result = path.toFile();
+        } catch (Exception ignored) { }
+        return result;
     }
 }
