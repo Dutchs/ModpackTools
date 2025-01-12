@@ -64,7 +64,7 @@ public class EntityPacket implements NetworkManager.INetworkPacket {
         contextSupplier.get().enqueueWork(() -> {
             ServerPlayer p = contextSupplier.get().getSender();
             if (p != null) {
-                if(!p.hasPermissions( 2)) {
+                if (!p.hasPermissions(2)) {
                     p.sendMessage(new TextComponent("You lack permissions to run this command").withStyle(Constants.ERROR_FORMAT), Constants.MOD_SENDER_UUID);
                     return;
                 }

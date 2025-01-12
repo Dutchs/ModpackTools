@@ -4,9 +4,12 @@ import com.dutchs.modpacktools.debug.HUDManager;
 import com.dutchs.modpacktools.util.CommandUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class KeyInputHandler {
 
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onKeyInput(InputEvent.KeyInputEvent event) {
         if (KeyBinds.mapHUDFPS.consumeClick()) {
             HUDManager.RENDERFPS = !HUDManager.RENDERFPS;

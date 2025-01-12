@@ -51,7 +51,7 @@ public class InventoryPacket implements INetworkPacket {
         contextSupplier.get().enqueueWork(() -> {
             ServerPlayer p = contextSupplier.get().getSender();
             if (p != null) {
-                if(p.hasPermissions( 2)) {
+                if (p.hasPermissions(2)) {
                     InventoryPacket inventoryPacket = (InventoryPacket) msg;
                     InventoryType type = inventoryPacket.inventoryType;
                     boolean nbt = inventoryPacket.includeNBT;
