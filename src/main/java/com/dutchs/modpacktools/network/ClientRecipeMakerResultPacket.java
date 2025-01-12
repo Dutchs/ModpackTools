@@ -4,7 +4,6 @@ import com.dutchs.modpacktools.ConfigHandler;
 import com.dutchs.modpacktools.util.ClipboardUtil;
 import com.dutchs.modpacktools.util.ComponentUtil;
 import com.dutchs.modpacktools.util.PlayerUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.StringUtil;
 import net.minecraftforge.api.distmarker.Dist;

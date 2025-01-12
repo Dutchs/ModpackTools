@@ -10,29 +10,28 @@ import java.util.List;
 import java.util.Map;
 
 public class GCManager {
-    private static final Map<String, Long> GC = new HashMap<>();
-    private static final Map<String, GCTimer> Timers = new HashMap<>();
+    private static final Map<String, Long> gc = new HashMap<>();
+    private static final Map<String, GCTimer> timers = new HashMap<>();
 
     public void Tick() {
         List<GarbageCollectorMXBean> gcMxBeanList = ManagementFactory.getGarbageCollectorMXBeans();
         for (GarbageCollectorMXBean gcMxBean : gcMxBeanList) {
             Long current = gcMxBean.getCollectionCount();
-            if (GC.containsKey(gcMxBean.getName())) {
-                Long old = GC.getOrDefault(gcMxBean.getName(), current);
+            if (gc.containsKey(gcMxBean.getName())) {
+                Long old = gc.getOrDefault(gcMxBean.getName(), current);
                 if (current > old) {
-                    GC.replace(gcMxBean.getName(), current);
-
-//                    ModpackTools.logInfo(String.format("GC %s took: %dms", gcMxBean.getName(), current - old));
+                    gc.replace(gcMxBean.getName(), current);
+                    ModpackTools.logInfo(String.format("GC %s took: %dms", gcMxBean.getName(), current - old));
                 }
-                Timers.get(gcMxBean.getName()).logGCDuration(current - old);
+                timers.get(gcMxBean.getName()).logGCDuration(current - old);
             } else {
-                GC.put(gcMxBean.getName(), current);
-                Timers.put(gcMxBean.getName(), new GCTimer(gcMxBean.getName()));
+                gc.put(gcMxBean.getName(), current);
+                timers.put(gcMxBean.getName(), new GCTimer(gcMxBean.getName()));
             }
         }
     }
 
     public Collection<GCTimer> getTimers() {
-        return Timers.values();
+        return timers.values();
     }
 }

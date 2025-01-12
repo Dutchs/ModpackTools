@@ -4,7 +4,6 @@ import com.dutchs.modpacktools.ConfigHandler;
 import com.dutchs.modpacktools.util.ClipboardUtil;
 import com.dutchs.modpacktools.util.ComponentUtil;
 import com.dutchs.modpacktools.util.PlayerUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.StringUtil;
 import net.minecraftforge.api.distmarker.Dist;
@@ -53,9 +52,10 @@ public class ClientInventoryResultPacket implements NetworkManager.INetworkPacke
         if (!StringUtil.isNullOrEmpty(msg.inventoryItems)) {
             String newLinesItems = msg.inventoryItems.replace("\n", System.lineSeparator());
 
-            if(ConfigHandler.autoCopyItems) {
+            if (ConfigHandler.autoCopyItems) {
                 ClipboardUtil.copyToClipboard(newLinesItems);
             }
+
             PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContentWithCopy(msg.inventoryType.toString(), msg.inventoryItems, newLinesItems));
         } else {
             PlayerUtil.sendClientMessage(ComponentUtil.formatTitleContent(msg.inventoryType.toString(), "Nothing to print"));

@@ -12,12 +12,14 @@ import org.jetbrains.annotations.NotNull;
 
 public class InputContainer implements Container, StackedContentsCompatible {
     private final NonNullList<ItemStack> items;
+    private final NonNullList<Integer> itemsIndexer;
     private final int width;
     private final int height;
     private final AbstractContainerMenu menu;
 
     public InputContainer(AbstractContainerMenu containerMenu, int width, int height) {
         this.items = NonNullList.withSize(width * height, ItemStack.EMPTY);
+        this.itemsIndexer = NonNullList.withSize(width * height, -1);
         this.menu = containerMenu;
         this.width = width;
         this.height = height;
@@ -47,6 +49,26 @@ public class InputContainer implements Container, StackedContentsCompatible {
         return pIndex >= this.getContainerSize() ? ItemStack.EMPTY : this.items.get(pIndex);
     }
 
+    public int getIndexerForSlot(int pIndex) {
+        return pIndex >= this.getContainerSize() ? -1 : this.itemsIndexer.get(pIndex);
+    }
+
+    public void setIndexerForSlot(int pIndex, int newValue) {
+        if(pIndex < this.getContainerSize()) {
+            this.itemsIndexer.set(pIndex, newValue);
+        }
+    }
+
+    public void setIndexerForAllMatchingCraftSlots(int pIndex, int newValue) {
+        if(pIndex < this.getContainerSize()) {
+            ItemStack indexStack = this.items.get(pIndex);
+            for (int i = 0; i < this.items.size(); i++) {
+                if(this.items.get(i).getItem() == indexStack.getItem()) {
+                    this.itemsIndexer.set(i, newValue);
+                }
+            }
+        }
+    }
     /**
      * Removes a stack from the given slot and returns it.
      */
@@ -71,6 +93,7 @@ public class InputContainer implements Container, StackedContentsCompatible {
      */
     public void setItem(int pIndex, ItemStack pStack) {
         this.items.set(pIndex, pStack);
+        this.itemsIndexer.set(pIndex, -1);
         this.menu.slotsChanged(this);
     }
 

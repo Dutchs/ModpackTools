@@ -12,10 +12,6 @@ public class DataGenerators {
     @SubscribeEvent
     public static void gatherData(GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
-//        if (event.includeServer()) {
-//        }
-        if (event.includeClient()) {
-            generator.addProvider(true, new ModLanguageProvider(generator, "en_us"));
-        }
+        generator.addProvider(event.includeClient(), new ModLanguageProvider(generator, "en_us"));
     }
 }

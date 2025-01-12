@@ -15,28 +15,34 @@ import java.util.function.Supplier;
 public class RecipeMakerActionPacket implements NetworkManager.INetworkPacket {
     public enum RecipeMakerActionType {
         Shaped,
-        Shapeless
+        Shapeless,
+        ClearRecipe,
+        ClearEverything
     }
 
     private RecipeMakerActionType actionType;
+    private int[] inputIndexer;
 
     public RecipeMakerActionPacket() {
     }
 
-    public RecipeMakerActionPacket(@NotNull RecipeMakerActionType type) {
+    public RecipeMakerActionPacket(@NotNull RecipeMakerActionType type, int[] indexer) {
         actionType = type;
+        inputIndexer = indexer;
     }
 
     @Override
     public void encode(Object msg, FriendlyByteBuf packetBuffer) {
         RecipeMakerActionPacket actionPacket = (RecipeMakerActionPacket) msg;
         packetBuffer.writeEnum(actionPacket.actionType);
+        packetBuffer.writeVarIntArray(actionPacket.inputIndexer);
     }
 
     @Override
     public <MESSAGE> MESSAGE decode(FriendlyByteBuf packetBuffer) {
         RecipeMakerActionPacket result = new RecipeMakerActionPacket();
         result.actionType = packetBuffer.readEnum(RecipeMakerActionType.class);
+            result.inputIndexer = packetBuffer.readVarIntArray();
         return (MESSAGE) result;
     }
 
@@ -51,11 +57,16 @@ public class RecipeMakerActionPacket implements NetworkManager.INetworkPacket {
                     if (type == RecipeMakerActionType.Shapeless) {
                         ItemStack result = menu.getOutputItemStack();
                         List<ItemStack> input = menu.getInputItemStacks();
-                        ModpackTools.NETWORK.toPlayer(new ClientRecipeMakerResultPacket(type, RecipeUtil.createShapelessJSON(result, input), RecipeUtil.formatInput(input), RecipeUtil.formatResult(result)), p);
+                        ModpackTools.NETWORK.toPlayer(new ClientRecipeMakerResultPacket(type, RecipeUtil.createShapelessJSON(result, input, action.inputIndexer), RecipeUtil.formatInput(input, action.inputIndexer), RecipeUtil.formatResult(result)), p);
                     } else if (type == RecipeMakerActionType.Shaped) {
                         ItemStack result = menu.getOutputItemStack();
                         List<ItemStack> input = menu.getInputItemStacks();
-                        ModpackTools.NETWORK.toPlayer(new ClientRecipeMakerResultPacket(type, RecipeUtil.createShapedJSON(result, input), RecipeUtil.formatInput(input), RecipeUtil.formatResult(result)), p);
+                        ModpackTools.NETWORK.toPlayer(new ClientRecipeMakerResultPacket(type, RecipeUtil.createShapedJSON(result, input, action.inputIndexer), RecipeUtil.formatInput(input, action.inputIndexer), RecipeUtil.formatResult(result)), p);
+                    } else if (type == RecipeMakerActionType.ClearRecipe) {
+                        menu.clearCraftingContent();
+                    } else if (type == RecipeMakerActionType.ClearEverything) {
+                        menu.clearCraftingContent();
+                        p.getInventory().items.clear();
                     }
                 }
             }
